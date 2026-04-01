@@ -14,4 +14,7 @@ export type InvoicesWithTotals = {
   updated_at: string;
   completed: boolean;
   total_amount_owed: number;
+  client_id?: string;
+  client_company_name?: string;
+  client_contact_name?: string;
 };

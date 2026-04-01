@@ -1,49 +1,30 @@
 type MetaInfoProps = {
   invoiceNumber: string;
-  setInvoiceNumber: (val: string) => void;
   date: string;
-  setDate: (val: string) => void;
   dueDate: string;
-  setDueDate: (val: string) => void;
 };
 
 export function MetaInfo({
   invoiceNumber,
-  setInvoiceNumber,
   date,
-  setDate,
   dueDate,
-  setDueDate,
 }: MetaInfoProps) {
   return (
-    <div className="meta">
-      <div className="badge">INVOICE</div>
-      <div className="row">
-        <label htmlFor="invno">Invoice #</label>
-        <input
-          id="invno"
-          placeholder="INV-0001"
-          value={invoiceNumber}
-          onChange={(e) => setInvoiceNumber(e.target.value)}
-        />
+    <div className="text-right min-w-[280px]">
+      <div className="inline-block py-1.5 px-2.5 bg-secondary text-secondary-foreground border border-border rounded-full text-xs mb-3 font-semibold tracking-wider">
+        INVOICE
       </div>
-      <div className="row">
-        <label htmlFor="date">Invoice Date</label>
-        <input
-          id="date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+      <div className="flex justify-end items-center gap-3 my-1.5 text-sm">
+        <label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Invoice #</label>
+        <div className="font-medium">{invoiceNumber}</div>
       </div>
-      <div className="row">
-        <label htmlFor="due">Due Date</label>
-        <input
-          id="due"
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-        />
+      <div className="flex justify-end items-center gap-3 my-1.5 text-sm">
+        <label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Invoice Date</label>
+        <div className="font-medium">{date}</div>
+      </div>
+      <div className="flex justify-end items-center gap-3 my-1.5 text-sm">
+        <label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Due Date</label>
+        <div className="font-medium">{dueDate}</div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { RootLayout } from "./components/layouts/RootLayout";
 import { LandingPage } from "./pages/LandingPage";
+import { PricingPage } from "./pages/PricingPage";
 import { LoginForm } from "./components/authentication/login-form";
 import { SignUpForm } from "./components/authentication/sign-up-form";
 import { ForgotPasswordForm } from "./components/authentication/forgot-password-form";
@@ -10,6 +11,7 @@ import { DashboardHome } from "./pages/DashboardHome";
 import { NewInvoice } from "./pages/NewInvoice";
 import Invoices from "./pages/Invoices";
 import { RequireAuth } from "./components/layouts/RequireAuth";
+import { Settings } from "./pages/Settings";
 
 export const router = createBrowserRouter([
   {
@@ -19,6 +21,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
+      },
+      {
+        path: "pricing",
+        element: <PricingPage />,
       },
       {
         path: "login",
@@ -66,6 +72,10 @@ export const router = createBrowserRouter([
               {
                 path: "all-invoices",
                 element: <Invoices />,
+              },
+              {
+                path: "settings",
+                element: <Settings />,
               },
             ],
           },

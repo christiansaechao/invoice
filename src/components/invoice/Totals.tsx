@@ -1,6 +1,5 @@
 type TotalsProps = {
   hourlyRate: string;
-  setHourlyRate: (val: string) => void;
   subtotal: number;
   discount: number;
   tax: number;
@@ -17,62 +16,37 @@ const money = (n: number) => {
 
 export function Totals({
   hourlyRate,
-  setHourlyRate,
   subtotal,
   discount,
   tax,
   total,
 }: TotalsProps) {
+  const rateAsNumber = parseFloat(hourlyRate) || 0;
+
   return (
-    <div className="totals w-full">
-      {/* <div className="card">
-        <h2>Notes / Terms</h2>
-        <textarea
-          className="w-full"
-          placeholder="Payment terms, late fees, bank details, thank you note, etc."
-        ></textarea>
-      </div> */}
+    <div className="grid gap-4 mt-6 items-start w-full">
+      <div className="border border-border rounded-xl bg-card p-5 shadow-sm">
+        <h3 className="mb-4 text-xs tracking-widest uppercase text-muted-foreground font-sans font-semibold">Summary</h3>
 
-      <div className="box">
-        <h3>Summary</h3>
-
-        <div className="sumrow">
-          <label>Hourly Rate</label>
-          <input
-            id="hourlyRate"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="24.00"
-            value={hourlyRate}
-            onChange={(e) => setHourlyRate(e.target.value)}
-          />
+        <div className="grid grid-cols-[1fr_140px] gap-3 items-center my-2.5">
+          <label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Hourly Rate</label>
+          <div id="hourlyRate" className="border border-input rounded-lg py-2 px-3 bg-background text-right font-medium text-sm tabular-nums">
+            {money(rateAsNumber)}
+          </div>
         </div>
 
-        <div className="sumrow">
-          <label>Subtotal</label>
-          <div id="subtotal" className="num">
+        <div className="grid grid-cols-[1fr_140px] gap-3 items-center my-2.5">
+          <label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Subtotal</label>
+          <div id="subtotal" className="border border-input rounded-lg py-2 px-3 bg-background text-right font-medium text-sm tabular-nums">
             {money(subtotal)}
           </div>
         </div>
-        {/* <div className="sumrow">
-          <label>Discount</label>
-          <div id="discount" className="num">
-            {money(discount)}
-          </div>
-        </div> */}
-        {/* <div className="sumrow">
-          <label>Tax</label>
-          <div id="tax" className="num">
-            {money(tax)}
-          </div>
-        </div> */}
-        <div className="sumrow grand">
+        <div className="grid grid-cols-[1fr_140px] gap-3 items-center mt-4 pt-4 border-t border-dashed border-border border-b-0">
           <label>
-            <strong>Total</strong>
+            <strong className="text-sm uppercase tracking-wider text-foreground">Total</strong>
           </label>
-          <div id="total" className="num">
-            <strong>{money(total)}</strong>
+          <div id="total" className="border-2 border-primary/20 rounded-lg py-2.5 px-3 bg-primary/5 text-right font-bold text-lg text-primary tabular-nums">
+            {money(total)}
           </div>
         </div>
       </div>

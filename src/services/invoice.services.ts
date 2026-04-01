@@ -3,7 +3,7 @@ import type { Row } from "@/types/entries.types";
 
 export const fetchProfile = async (userId: string) => {
   const { data, error } = await supabase
-    .from("profiles")
+    .from("users")
     .select("*")
     .eq("id", userId)
     .single();
@@ -16,6 +16,21 @@ export const fetchProfile = async (userId: string) => {
   }
 
   return data;
+};
+
+export const updateProfile = async (userId: string, updates: any) => {
+  const { data, error } = await supabase
+    .from("users")
+    .update(updates)
+    .eq("id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    return { success: false, error };
+  }
+
+  return { success: true, data };
 };
 
 export const fetchInvoices = async () => {
@@ -40,11 +55,41 @@ export const fetchInvoicesWithTotals = async () => {
   if (error) {
     throw new Error(
       "There was an issue when trying to retrieve all the invoices for the current user: " +
-        error,
+      error,
     );
   }
 
   return data;
+};
+
+export const fetchClients = async () => {
+  const { data, error } = await supabase.from("clients").select("*");
+
+  if (error) {
+    throw new Error(
+      "There was an issue trying to retrieve the clients: " + error.message,
+    );
+  }
+
+  return data;
+};
+
+export const createClient = async (clientData: any) => {
+  // Try to grab auth session for user_id mapping
+  const { data: { user } } = await supabase.auth.getUser();
+  const insertPayload = user ? { ...clientData, user_id: user.id } : clientData;
+
+  const { data, error } = await supabase
+    .from("clients")
+    .insert(insertPayload)
+    .select()
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data };
 };
 
 export const fetchEntries = async () => {
@@ -60,10 +105,79 @@ export const fetchEntries = async () => {
   return data;
 };
 
-export const saveInvoice = async (rows: Row[]) => {
+export const fetchEntriesByInvoiceId = async (invoiceId: string) => {
+  const { data, error } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("invoice_id", invoiceId);
+
+  if (error) {
+    console.error("Failed to fetch invoice entries:", error);
+    return [];
+  }
+
+  // Clean DB timestamps (2026-04-01T00:00:00 -> 2026-04-01) for correct HTML <input type="date"> binding
+  return (data || []).map((entry: any) => ({
+    ...entry,
+    work_date: entry.work_date ? entry.work_date.split('T')[0] : ''
+  }));
+};
+
+export const updateInvoiceEntries = async (invoiceId: string, rows: Row[]) => {
+  const { error: deleteError } = await supabase
+    .from("entries")
+    .delete()
+    .eq("invoice_id", invoiceId);
+
+  if (deleteError) {
+    return { success: false, error: deleteError.message };
+  }
+
+  const formattedRows = rows.map((row) => ({
+    invoice_id: invoiceId,
+    work_date: row.work_date,
+    hours: row.hours,
+    amount_owed: row.amount_owed,
+    description: row.description,
+  }));
+
+  const { data, error: insertError } = await supabase
+    .from("entries")
+    .insert(formattedRows)
+    .select();
+
+  if (insertError) {
+    return { success: false, error: insertError.message };
+  }
+
+  return { success: true, data };
+};
+
+export const fetchLastInvoiceNumberByClient = async (clientId: string) => {
+  if (!clientId) return null;
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("invoice_number")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to fetch last invoice number:", error);
+    return null;
+  }
+
+  return data?.invoice_number || null;
+};
+
+export const saveInvoice = async (rows: Row[], clientId: string, invoiceNumber: string) => {
   const { data: invoice, error: invoiceError } = await supabase
     .from("invoices")
-    .insert({})
+    .insert({
+      client_id: clientId || null,
+      invoice_number: invoiceNumber ? parseInt(invoiceNumber, 10) : null
+    })
     .select()
     .single();
 
@@ -72,8 +186,8 @@ export const saveInvoice = async (rows: Row[]) => {
       success: false,
       error: invoiceError,
       message: "There was an issue creating an invoice",
-      entires: null,
-      invoices: null,
+      entries: null,
+      invoice: null,
     };
   }
 
@@ -84,8 +198,6 @@ export const saveInvoice = async (rows: Row[]) => {
     amount_owed: row.amount_owed,
     description: row.description,
   }));
-
-  console.log(formattedRows);
 
   const { data: entries, error: entriesError } = await supabase
     .from("entries")
@@ -109,4 +221,43 @@ export const saveInvoice = async (rows: Row[]) => {
     entries: entries,
     invoice: invoice,
   };
+};
+
+export const updateInvoiceStatus = async (invoiceId: string, completed: boolean) => {
+  const { data, error } = await supabase
+    .from("invoices")
+    .update({ completed })
+    .eq("id", invoiceId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Failed to update invoice status:", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true, data };
+};
+
+export const updateFullInvoice = async (
+  invoiceId: string,
+  clientId: string,
+  invoiceNumber: string,
+  rows: Row[]
+) => {
+  const { error: invErr } = await supabase
+    .from("invoices")
+    .update({
+      client_id: clientId || null,
+      invoice_number: invoiceNumber ? parseInt(invoiceNumber, 10) : null
+    })
+    .eq("id", invoiceId);
+
+  if (invErr) {
+    console.error("Failed to update base invoice details:", invErr);
+    return { success: false, error: invErr.message };
+  }
+
+  // Transactionally map entry cascade onto successfully patched parent
+  const entriesRes = await updateInvoiceEntries(invoiceId, rows);
+  return entriesRes;
 };

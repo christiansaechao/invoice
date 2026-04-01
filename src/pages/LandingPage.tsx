@@ -1,63 +1,12 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, FileText, Receipt, Globe, BarChart } from "lucide-react";
-
-import { useEffect } from "react";
-import { supabase } from "@/lib/supabase-client";
+import { Check, FileText, Globe, BarChart } from "lucide-react";
+import { LandingNav } from "@/components/landing/LandingNav";
 
 export function LandingPage() {
-  useEffect(() => {
-    async function fetchUser() {
-      const { data, error } = await supabase.from("profiles").select("*");
-      console.log("data: ", data);
-      console.log("erro: ", error);
-    }
-
-    fetchUser();
-  }, []);
-
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans">
-      {/* Header */}
-      <header className="px-6 md:px-12 h-20 flex items-center justify-between border-b border-border/40 sticky top-0 bg-background/95 backdrop-blur z-50">
-        <div className="flex items-center gap-2">
-          <div className="bg-primary text-primary-foreground rounded-lg p-2">
-            <Receipt className="h-5 w-5" />
-          </div>
-          <div className="font-serif font-bold text-2xl tracking-tight text-primary">
-            Pay That Man
-          </div>
-        </div>
-
-        <nav className="hidden md:flex gap-8 text-sm font-medium text-muted-foreground">
-          <Link to="#" className="hover:text-foreground transition-colors">
-            Solutions
-          </Link>
-          <Link to="#" className="hover:text-foreground transition-colors">
-            Pricing
-          </Link>
-          <Link to="#" className="hover:text-foreground transition-colors">
-            Resources
-          </Link>
-          <Link to="#" className="hover:text-foreground transition-colors">
-            Enterprise
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <Link
-            to="/login"
-            className="text-sm font-medium hover:text-foreground transition-colors"
-          >
-            Login
-          </Link>
-          <Link to="/sign-up">
-            <Button className="rounded-full px-6 font-medium">
-              Open an Account
-            </Button>
-          </Link>
-        </div>
-      </header>
+      <LandingNav />
 
       {/* Hero Section */}
       <main className="flex-1">

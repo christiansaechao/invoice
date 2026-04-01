@@ -20,20 +20,19 @@ export function FromInfo() {
   }
 
   return (
-    <div className="card">
-      <h2>From</h2>
-      <div className="fromHeader">
-        <div className="fromName capitalize">
+    <div className="border border-border rounded-xl p-4 md:p-6 lg:p-[32px] bg-card shadow-sm flex flex-col gap-2.5">
+      <h2 className="text-xs tracking-widest uppercase text-muted-foreground font-sans mb-1">From</h2>
+      <div className="border border-border bg-white rounded-2xl py-3.5 px-4 shadow-sm">
+        <div className="font-bold tracking-wide mb-1.5 capitalize text-foreground">
           {first_name} {last_name}
         </div>
-        <div className="fromMeta">
-          <div className="toLine">{address}</div>
-          <div className="toLine capitalize">
+        <div className="text-muted-foreground text-[13px] leading-relaxed pt-1.5 border-t border-slate-200/70">
+          <div className="py-1">{address}</div>
+          <div className="py-1 border-t border-slate-200/70 capitalize">
             {city} {state}, {area_code}
           </div>
-          <div className="toLine toMuted">{phone_number}</div>
-          <div className="toLine toMuted">{preferred_email}</div>
-          <div className="toLine"></div>
+          <div className="py-1 border-t border-slate-200/70 tabular-nums">{phone_number}</div>
+          <div className="py-1 border-t border-slate-200/70">{preferred_email}</div>
         </div>
       </div>
     </div>

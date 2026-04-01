@@ -24,7 +24,6 @@ export function RequireAuth() {
         }
 
         setSession(data.session ?? null);
-        console.log(data.session);
 
         const profile = await fetchProfile(data.session.user.id ?? null);
 

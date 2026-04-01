@@ -1,68 +1,44 @@
 import React from "react";
-import AutoGrowTextarea from "./AutoGrowTextarea";
-import type { InvoiceTableProps } from "@/types/entries.types";
+import type { Row } from "@/types/entries.types";
 
-export function InvoiceTable({ rows, updateRow }: InvoiceTableProps) {
+export function InvoiceTable({ rows }: { rows: Row[] }) {
   return (
-    <table className="w-full">
-      <thead>
+    <table className="w-full border-separate border-spacing-0 overflow-hidden rounded-xl border border-border bg-white shadow-sm mt-6">
+      <thead className="bg-slate-50">
         <tr>
-          <th>Date</th>
-          <th className="num">Hours Worked</th>
-          <th className="num">Amount Owed</th>
+          <th className="text-left text-xs text-muted-foreground py-3 px-4 border-b border-border tracking-wider font-semibold font-sans">Date</th>
+          <th className="text-right text-xs text-muted-foreground py-3 px-4 border-b border-border tracking-wider font-semibold font-sans">Hours Worked</th>
+          <th className="text-right text-xs text-muted-foreground py-3 px-4 border-b border-border tracking-wider font-semibold font-sans">Amount Owed</th>
         </tr>
       </thead>
 
       <tbody id="invoiceRows">
-        {rows.map((row, i) => (
-          <React.Fragment key={i}>
-            <tr>
-              <td>
-                <input
-                  className="w-full"
-                  type="date"
-                  value={row.work_date}
-                  onChange={(e) => updateRow(i, "work_date", e.target.value)}
-                  required
-                />
-              </td>
-              <td>
-                <input
-                  className="w-full"
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  placeholder="0"
-                  value={row.hours}
-                  onChange={(e) => updateRow(i, "hours", e.target.value)}
-                  required
-                />
-              </td>
-              <td>
-                <input
-                  className="w-full"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={row.amount_owed}
-                  onChange={(e) => updateRow(i, "amount_owed", e.target.value)}
-                  required
-                />
-              </td>
-            </tr>
-
-            <tr>
-              <td colSpan={3} className="border-b border-line">
-                <AutoGrowTextarea
-                  value={row.description}
-                  onChange={(v) => updateRow(i, "description", v)}
-                  placeholder="What you worked on..."
-                />
-              </td>
-            </tr>
-          </React.Fragment>
-        ))}
+        {rows.map((row, i) => {
+          const isLast = i === rows.length - 1;
+          const borderClass = isLast && !row.description ? "border-0" : "border-b border-slate-100";
+          
+          return (
+            <React.Fragment key={i}>
+              <tr>
+                <td className={`p-3 px-4 align-top ${borderClass}`}>{row.work_date}</td>
+                <td className={`p-3 px-4 align-top text-right tabular-nums ${borderClass}`}>{row.hours}</td>
+                <td className={`p-3 px-4 align-top text-right tabular-nums font-medium ${borderClass}`}>
+                  {row.amount_owed ? `$${row.amount_owed}` : ""}
+                </td>
+              </tr>
+              {row.description && (
+                <tr>
+                  <td 
+                    colSpan={3} 
+                    className={`px-4 pb-4 pt-1 text-sm text-muted-foreground whitespace-pre-wrap align-top ${isLast ? "border-0" : "border-b border-slate-100"}`}
+                  >
+                    {row.description}
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          );
+        })}
       </tbody>
     </table>
   );
