@@ -13,6 +13,9 @@ export type ProfileType = {
   area_code: string;
   address: string;
   phone_number: string;
+  default_hourly_rate: number;
+  magic_credits: number;
+  brand_logo_url?: string;
 };
 
 export type UserState = {

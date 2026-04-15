@@ -1,3 +1,5 @@
+import { useSettings } from "@/store/settings.store";
+
 type TotalsProps = {
   hourlyRate: string;
   subtotal: number;
@@ -18,10 +20,39 @@ export function Totals({
   hourlyRate,
   subtotal,
   discount,
-  tax,
   total,
 }: TotalsProps) {
+  const { defaultTemplateId } = useSettings();
   const rateAsNumber = parseFloat(hourlyRate) || 0;
+
+  const isMinimal = defaultTemplateId === "minimal";
+
+  if (isMinimal) {
+    return (
+      <div className="flex flex-col items-end w-full mt-6">
+        <div className="w-72">
+          <div className="flex justify-between py-3 border-b border-slate-100">
+            <span className="text-slate-500 text-sm font-medium">Hourly Rate</span>
+            <span className="text-slate-900 font-medium tabular-nums">{money(rateAsNumber)} / hr</span>
+          </div>
+          <div className="flex justify-between py-3 border-b border-slate-100">
+            <span className="text-slate-500 text-sm font-medium">Subtotal</span>
+            <span className="text-slate-900 font-medium tabular-nums">{money(subtotal)}</span>
+          </div>
+          {discount > 0 && (
+            <div className="flex justify-between py-3 border-b border-slate-100">
+              <span className="text-slate-500 text-sm font-medium">Discount</span>
+              <span className="text-slate-900 font-medium tabular-nums">-{money(discount)}</span>
+            </div>
+          )}
+          <div className="flex justify-between py-4 border-b-2 border-slate-800 items-end mt-2">
+            <span className="text-slate-900 font-bold uppercase tracking-wider">Total Due</span>
+            <span className="text-slate-900 font-extrabold text-2xl tabular-nums">{money(total)}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 mt-6 items-start w-full">

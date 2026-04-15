@@ -22,8 +22,8 @@ export function useLineItems(initialRows: Row[] = [createEmptyRow()]) {
       let recentDate = "";
       if (prev.length > 0) {
         // Find first valid string
-        const validRows = prev.filter(r => r.work_date);
-        recentDate = validRows.length > 0 ? validRows[0].work_date : "";
+        const validRows = prev.filter(r => r.service_date);
+        recentDate = validRows.length > 0 ? validRows[0].service_date : "";
       }
       return addRowToList(prev, recentDate);
     });
@@ -39,8 +39,8 @@ export function useLineItems(initialRows: Row[] = [createEmptyRow()]) {
 
   return {
     rows,
-    setRows, // Exported in case raw overriding is necessary
     hourlyRate,
+    setRows,
     setHourlyRate,
     updateRow,
     addRow,

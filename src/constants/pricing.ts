@@ -1,8 +1,8 @@
 
 
 // ─── Brand ───────────────────────────────────────────────────────────────────
-export const BRAND_NAME = "Pay That Man";
-export const BRAND_TAGLINE = "The definitive invoicing partner for professional services.";
+export const BRAND_NAME = "Reciept";
+export const BRAND_TAGLINE = "Precision Fluidity for Creators. The modern operating system for creative capital.";
 
 // ─── Plans ────────────────────────────────────────────────────────────────────
 export type Plan = {

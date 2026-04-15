@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export type BillToInfo = {
   manager: string;
@@ -14,6 +13,10 @@ export type SettingsState = {
   setBillTo: (info: BillToInfo) => void;
   defaultClientId: string | null;
   setDefaultClientId: (id: string | null) => void;
+  defaultTemplateId: string;
+  setDefaultTemplateId: (id: string) => void;
+  logoUrl: string | null;
+  setLogoUrl: (url: string | null) => void;
 };
 
 const defaultBillTo: BillToInfo = {
@@ -24,16 +27,13 @@ const defaultBillTo: BillToInfo = {
   phoneNumber: "",
 };
 
-export const useSettings = create<SettingsState>()(
-  persist(
-    (set) => ({
-      billTo: defaultBillTo,
-      setBillTo: (info) => set({ billTo: info }),
-      defaultClientId: null,
-      setDefaultClientId: (id) => set({ defaultClientId: id }),
-    }),
-    {
-      name: "invoice-settings-storage",
-    }
-  )
-);
+export const useSettings = create<SettingsState>((set) => ({
+  billTo: defaultBillTo,
+  setBillTo: (info: BillToInfo) => set({ billTo: info }),
+  defaultClientId: null,
+  setDefaultClientId: (id: string | null) => set({ defaultClientId: id }),
+  defaultTemplateId: "standard",
+  setDefaultTemplateId: (id: string) => set({ defaultTemplateId: id }),
+  logoUrl: null,
+  setLogoUrl: (url: string | null) => set({ logoUrl: url }),
+}));

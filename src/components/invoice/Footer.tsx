@@ -1,9 +1,9 @@
-import { useUser } from "@/store/user.store";
+import { useFetchProfile } from "@/api/user.api";
 
 export function Footer() {
-  const { profile } = useUser((state) => state);
-  
-  if (!profile) return null;
+  const { data: profile, isPending, isError } = useFetchProfile();
+
+  if (isPending || isError || !profile) return null;
   const fullName = `${profile.first_name} ${profile.last_name}`;
 
   return (

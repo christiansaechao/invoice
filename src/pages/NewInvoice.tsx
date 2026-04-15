@@ -1,25 +1,31 @@
 import { useState, useMemo, useEffect } from "react";
-import { Header } from "../components/invoice/Header";
-import { MetaInfo } from "../components/invoice/MetaInfo";
-import { BillTo } from "../components/invoice/BillTo";
-import { FromInfo } from "../components/invoice/FromInfo";
-import { InvoiceTable } from "../components/invoice/InvoiceTable";
-import { Totals } from "../components/invoice/Totals";
-import { Footer } from "../components/invoice/Footer";
 import { InvoiceDetailsForm } from "../components/invoice/InvoiceDetailsForm";
 import { LineItemsForm } from "../components/invoice/LineItemsForm";
 import { InvoiceActionButtons } from "../components/invoice/InvoiceActionButtons";
 import { saveInvoice, fetchClients, fetchLastInvoiceNumberByClient } from "@/services/invoice.services";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import type { Row } from "@/types/entries.types";
+import { supabase } from "@/lib/supabase-client";
+import { getCurrentSubscription } from "@/services/subscription.services";
+
 import {
   calculateTotals,
   getBillToOverride,
 } from "@/utils/invoice.utils";
 import { useLineItems } from "@/hooks/useLineItems";
+import { useSettings } from "@/store/settings.store";
+import { useUser } from "@/store/user.store";
+import { extractInvoiceWithAI } from "@/services/ai.services";
+import { useFetchUserSettings } from "@/api/settings.api";
+import { useTemplates } from "@/api/templates.api";
+import { CreateInvoiceWorkspace } from "../components/invoice/CreateInvoiceWorkspace";
+import { useInvoiceWorkspace } from "@/store/invoice.store";
+import { TemplateRenderer } from "../components/invoice/TemplateRenderer";
+import { buildInvoiceDocumentData } from "@/utils/invoice-document.utils";
+import type { InvoiceTemplateSlug } from "@/types/invoice-document.types";
 
 export function NewInvoice() {
+  const { session, profile } = useUser();
+
   // Meta State
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState("");
@@ -28,6 +34,132 @@ export function NewInvoice() {
   // Client Selection State
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+
+  // Invoice Template Local State
+  const [templateId, setTemplateId] = useState<string>("");
+
+  // AI Feature State
+  const [promptText, setPromptText] = useState("");
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [credits, setCredits] = useState<number>(0); // NEW: Track credits locally
+
+  // NEW: Fetch user's credits on mount
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const fetchCredits = async () => {
+      try {
+        const subscription = await getCurrentSubscription();
+        if (subscription && typeof subscription.magic_credits === "number") {
+          setCredits(subscription.magic_credits || 0);
+        }
+      } catch (e) {
+        console.error("Failed to fetch subscription credits:", e);
+      }
+    };
+
+    fetchCredits();
+  }, [session?.user?.id]);
+
+  const { data: userSettings } = useFetchUserSettings();
+  const { defaultTemplateId, setDefaultTemplateId } = useSettings();
+  // Fetch the full templates list so we can resolve UUID → slug for the renderer
+  const { data: templates } = useTemplates();
+
+  useEffect(() => {
+    if (userSettings) {
+      if (userSettings.default_client_id && !selectedClientId) {
+        setSelectedClientId(userSettings.default_client_id);
+      }
+      if (userSettings.default_template_id) {
+        setDefaultTemplateId(userSettings.default_template_id);
+        // Always keep local templateId in sync when the global default changes
+        // (only override if the user hasn't manually picked a different one for this invoice)
+        setTemplateId((prev) => prev === "" ? userSettings.default_template_id : prev);
+      }
+    }
+  }, [userSettings, selectedClientId, setDefaultTemplateId]);
+
+  // Resolve the active template UUID to its slug for the renderer
+  const activeTemplateSlug = (templates as any[])?.find(
+    (t) => t.id === (templateId || defaultTemplateId)
+  )?.slug ?? 'standard';
+
+  // Synchronize Payment Terms offset into Due Date automatically
+  const { paymentTerms, workspaceMode } = useInvoiceWorkspace();
+
+  useEffect(() => {
+    if (workspaceMode === "recurring") {
+      setDueDate(""); // Recurring hides standard explicit due-date math
+      return; 
+    }
+    
+    if (!date) {
+      setDueDate("");
+      return;
+    }
+    
+    const d = new Date(date);
+    if (paymentTerms === "net-15") d.setUTCDate(d.getUTCDate() + 15);
+    if (paymentTerms === "net-30") d.setUTCDate(d.getUTCDate() + 30);
+    if (paymentTerms === "net-60") d.setUTCDate(d.getUTCDate() + 60);
+    
+    setDueDate(d.toISOString().split("T")[0]);
+  }, [date, paymentTerms, workspaceMode]);
+
+  async function handleAIExtraction() {
+    if (!promptText.trim() || credits <= 0 || !session?.user?.id) return;
+    setIsExtracting(true);
+
+    try {
+      // PASS DATA HERE: We send prompt, user ID, current clients list, and current rate
+      const response = await extractInvoiceWithAI(
+        promptText,
+        session.user.id,
+        clients,
+        hourlyRate
+      );
+
+      const extractedData = response.result ?? response;
+
+      console.log("AI Extraction Complete:", extractedData);
+
+      // 2. Populate Form State
+      if (extractedData.client_id) {
+        setSelectedClientId(extractedData.client_id);
+      }
+
+      setDate(extractedData.invoice_date);
+      setDueDate(extractedData.due_date);
+      setHourlyRate(String(extractedData.hourly_rate));
+
+      // Update the table rows
+      setRows(extractedData.entries);
+
+      // 3. UI Updates: use server-provided remaining credits when available
+      if (typeof response.creditsRemaining === "number") {
+        setCredits(response.creditsRemaining);
+      } else {
+        // Fallback: refetch subscription credits
+        try {
+          const subscription = await getCurrentSubscription();
+          if (subscription && typeof subscription.magic_credits === "number") {
+            setCredits(subscription.magic_credits || 0);
+          }
+        } catch (e) {
+          console.error("Failed to refresh subscription credits:", e);
+        }
+      }
+
+      toast.success("Invoice generated successfully!");
+      setPromptText(""); // Clear the prompt after success
+    } catch (error) {
+      console.error("Error with AI extraction:", error);
+      toast.error(String((error as Error).message || "Failed to generate invoice with AI."));
+    } finally {
+      setIsExtracting(false);
+    }
+  }
 
   useEffect(() => {
     fetchClients()
@@ -67,6 +199,7 @@ export function NewInvoice() {
   const {
     rows,
     hourlyRate,
+    setRows,
     setHourlyRate,
     updateRow,
     addRow,
@@ -79,15 +212,26 @@ export function NewInvoice() {
       toast("Please select a client before saving the invoice.");
       return;
     }
-    const { message } = await saveInvoice(rows, selectedClientId, invoiceNumber);
+    const { message } = await saveInvoice(
+      rows,
+      selectedClientId,
+      invoiceNumber,
+      date,
+      dueDate,
+      {
+         subtotal: subtotal,
+         total_amount: total,
+         currency: "USD",
+         discount_value: 0,
+         tax_amount: 0,
+         template_id: templateId
+      }
+    );
     toast(message);
   };
 
   const printInvoice = () => {
-    // We execute the auto calc over the actual hook rows immediately before print
     autoCalc();
-
-    // Give react 1 tick to flush state to dom before snapping PDF
     setTimeout(() => {
       window.print();
     }, 150);
@@ -95,72 +239,91 @@ export function NewInvoice() {
 
   // Computed Totals
   const { subtotal, total } = useMemo(() => calculateTotals(rows), [rows]);
+  const previewDocument = useMemo(() => (
+    buildInvoiceDocumentData({
+      invoiceId: "draft",
+      invoiceNumber,
+      invoiceDate: date,
+      dueDate,
+      templateSlug: activeTemplateSlug as InvoiceTemplateSlug,
+      rows,
+      subtotal,
+      total,
+      fromProfile: profile,
+      billTo: billToOverride,
+    })
+  ), [invoiceNumber, date, dueDate, activeTemplateSlug, rows, subtotal, total, profile, billToOverride]);
 
   return (
-    <div className="flex flex-col xl:flex-row gap-8 items-start h-full pb-8">
-      {/* Left Panel: Form */}
-      <div className="w-full xl:w-[450px] flex-shrink-0 flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm no-print">
-        <InvoiceDetailsForm
-          clients={clients}
-          selectedClientId={selectedClientId}
-          setSelectedClientId={setSelectedClientId}
-          onClientCreated={handleClientCreated}
-          invoiceNumber={invoiceNumber}
-          setInvoiceNumber={setInvoiceNumber}
-          date={date}
-          setDate={setDate}
-          dueDate={dueDate}
-          setDueDate={setDueDate}
-        />
-        <LineItemsForm
-          rows={rows}
-          hourlyRate={hourlyRate}
-          setHourlyRate={setHourlyRate}
-          updateRow={updateRow}
-          removeRow={removeRow}
-          addRow={addRow}
-          autoCalc={autoCalc}
-        />
-        <InvoiceActionButtons
-          saveNewInvoice={saveNewInvoice}
-          printInvoice={printInvoice}
-        />
-      </div>
-
-      {/* Right Panel: Preview Area */}
-      <div className="flex-1 w-full flex justify-center overflow-x-auto rounded-xl shadow-sm border border-border border-b-0">
-        <div id="print-area" className="bg-white m-0 min-w-[700px] w-full max-w-[850px] !shadow-none !border-0 rounded-xl overflow-hidden">
-          <div className="flex gap-5 justify-between items-start pt-7 px-7 pb-4 bg-gradient-to-br from-white to-slate-50 border-b border-border">
-            <Header />
-            <MetaInfo
-              invoiceNumber={invoiceNumber}
-              date={date}
-              dueDate={dueDate}
-            />
+    <div className="flex flex-col gap-6">
+      {/* Magic AI Prompt Section */}
+      <div className="w-full bg-card border border-border p-6 rounded-xl shadow-sm no-print">
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-semibold">Magic AI Extraction</label>
           </div>
-
-          <div className="pt-5 px-7 pb-2.5">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <BillTo override={billToOverride} />
-              <FromInfo />
-            </div>
-
-            <InvoiceTable rows={rows} />
-
-            <Totals
-              hourlyRate={hourlyRate}
-              subtotal={subtotal}
-              discount={0}
-              tax={0}
-              total={total}
-            />
+          <textarea
+            className="w-full text-sm p-3 border border-border rounded-md resize-none h-24 focus:ring-2 focus:ring-purple-500 outline-none"
+            placeholder="e.g. Bill Song's Company for the server setup. 4 hours on April 1st. Use my standard rate."
+            value={promptText}
+            onChange={(e) => setPromptText(e.target.value)}
+            disabled={isExtracting || credits <= 0}
+          />
+          <div className="flex justify-between items-center mt-2">
+            <button
+              onClick={handleAIExtraction}
+              disabled={isExtracting || !promptText.trim() || credits <= 0}
+              className="bg-purple-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
+            >
+              {isExtracting ? "Extracting..." : credits <= 0 ? "Out of Credits" : "Generate with AI"}
+            </button>
+            <span className={`text-xs ${credits > 0 ? "text-slate-500" : "text-red-500 font-medium"}`}>
+              ⚡️ {credits} magic generations remaining
+            </span>
           </div>
-
-          <Footer />
         </div>
       </div>
 
-      <Toaster />
+      <div className="flex flex-col xl:flex-row gap-8 items-start h-full pb-8">
+        {/* Left Panel: Form */}
+        <div className="w-full xl:w-[450px] flex-shrink-0 flex flex-col gap-6 no-print">
+          <CreateInvoiceWorkspace date={date} setDate={setDate} />
+          
+          <div className="bg-card border border-border p-6 rounded-xl shadow-sm flex flex-col gap-6">
+            <InvoiceDetailsForm
+              clients={clients}
+              selectedClientId={selectedClientId}
+              setSelectedClientId={setSelectedClientId}
+              onClientCreated={handleClientCreated}
+              invoiceNumber={invoiceNumber}
+              setInvoiceNumber={setInvoiceNumber}
+              templateId={templateId}
+              setTemplateId={setTemplateId}
+            />
+            <LineItemsForm
+              rows={rows}
+              hourlyRate={hourlyRate}
+              setHourlyRate={setHourlyRate}
+              updateRow={updateRow}
+              removeRow={removeRow}
+              addRow={addRow}
+              autoCalc={autoCalc}
+            />
+            <InvoiceActionButtons
+              saveNewInvoice={saveNewInvoice}
+              printInvoice={printInvoice}
+            />
+          </div>
+        </div>
+
+        {/* Right Panel: Preview Area */}
+        <div className="flex-1 w-full flex justify-center overflow-x-auto pb-12">
+          <div id="print-area" className="aspect-[8.5/11] min-w-[700px] w-full max-w-[850px] h-max rounded-xl overflow-hidden backdrop-blur-md bg-white/70 border border-white/50 shadow-xl print:shadow-none print:border-none print:bg-white print:aspect-auto">
+            <TemplateRenderer document={previewDocument} />
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }

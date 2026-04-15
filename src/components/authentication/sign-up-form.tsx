@@ -86,7 +86,7 @@ export function SignUpForm({
           <div className="flex items-center gap-2">
             <Landmark className="h-6 w-6 text-zinc-900" />
             <span className="font-serif text-xl font-medium tracking-tight">
-              Pay That Man
+              Reciept
             </span>
           </div>
 
@@ -122,7 +122,7 @@ export function SignUpForm({
               Create, Save, and Send Invoices in Minutes
             </h1>
             <p className="text-lg text-zinc-600 font-light italic">
-              Pay That Man helps you create, update, and store invoices—then
+              Reciept helps you create, update, and store invoices—then
               export a clean PDF whenever you need it.
             </p>
           </div>
@@ -334,7 +334,7 @@ export function SignUpForm({
       <footer className="border-t border-zinc-200 bg-white py-8">
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] uppercase tracking-widest font-medium text-zinc-400">
           <p>
-            &copy; {new Date().getFullYear()} Pay That Man Inc. All rights
+            &copy; {new Date().getFullYear()} Reciept Inc. All rights
             reserved.
           </p>
           <div className="flex gap-8">

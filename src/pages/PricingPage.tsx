@@ -1,9 +1,10 @@
 import { LandingNav } from "@/components/landing/LandingNav";
 import { LandingFooter } from "@/components/landing/LandingFooter";
-import { PricingHero, PricingCards } from "@/components/landing/PricingSection";
+import { PricingHero } from "@/components/landing/pricing/PricingHero";
+import { PricingCards } from "@/components/landing/pricing/PricingCard";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
 import { FaqSection } from "@/components/landing/FaqSection";
-import { PricingCta } from "@/components/landing/PricingCta";
+import { PricingCta } from "@/components/landing/pricing/PricingCta";
 
 export function PricingPage() {
   return (

@@ -1,45 +1,159 @@
-import React from "react";
-import type { Row } from "@/types/entries.types";
+import { LoaderCircle, Pencil } from "lucide-react";
+import type { InvoicesWithTotals } from "@/types/invoice.types";
+import type { InvoiceStatus } from "@/types/invoice.types";
 
-export function InvoiceTable({ rows }: { rows: Row[] }) {
+interface InvoiceTableProps {
+  invoices: InvoicesWithTotals[];
+  isLoading?: boolean;
+  /** Cap the number of rows shown (e.g. 4 for the dashboard). Omit for no limit. */
+  limit?: number;
+  onToggleStatus: (id: string, next: InvoiceStatus) => void;
+  onEdit: (inv: InvoicesWithTotals) => void;
+  /** Show the pencil edit column. Defaults to true. */
+  showEdit?: boolean;
+  emptyMessage?: string;
+  readOnlyStatus?: boolean;
+}
+
+export function InvoiceTable({
+  invoices,
+  isLoading = false,
+  limit,
+  onToggleStatus,
+  onEdit,
+  showEdit = true,
+  readOnlyStatus = false,
+  emptyMessage = "No invoices match your filters.",
+}: InvoiceTableProps) {
+  const rows = limit ? invoices.slice(0, limit) : invoices;
+  const colSpan = showEdit ? 6 : 5;
+
   return (
-    <table className="w-full border-separate border-spacing-0 overflow-hidden rounded-xl border border-border bg-white shadow-sm mt-6">
-      <thead className="bg-slate-50">
-        <tr>
-          <th className="text-left text-xs text-muted-foreground py-3 px-4 border-b border-border tracking-wider font-semibold font-sans">Date</th>
-          <th className="text-right text-xs text-muted-foreground py-3 px-4 border-b border-border tracking-wider font-semibold font-sans">Hours Worked</th>
-          <th className="text-right text-xs text-muted-foreground py-3 px-4 border-b border-border tracking-wider font-semibold font-sans">Amount Owed</th>
-        </tr>
-      </thead>
+    <div className="bg-white rounded-xl border border-border overflow-hidden shadow-sm">
+      <table className="w-full text-sm">
+        <thead className="border-b border-border bg-accent/40">
+          <tr>
+            <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase text-muted-foreground">
+              Invoice ID
+            </th>
+            <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase text-muted-foreground">
+              Date
+            </th>
+            <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase text-muted-foreground">
+              Client
+            </th>
+            <th className="py-3 px-4 text-right text-[10px] font-bold tracking-widest uppercase text-muted-foreground">
+              Total
+            </th>
+            <th className="py-3 px-4 text-center text-[10px] font-bold tracking-widest uppercase text-muted-foreground">
+              Status
+            </th>
+            {showEdit && <th className="py-3 px-4 w-[52px]" />}
+          </tr>
+        </thead>
 
-      <tbody id="invoiceRows">
-        {rows.map((row, i) => {
-          const isLast = i === rows.length - 1;
-          const borderClass = isLast && !row.description ? "border-0" : "border-b border-slate-100";
-          
-          return (
-            <React.Fragment key={i}>
-              <tr>
-                <td className={`p-3 px-4 align-top ${borderClass}`}>{row.work_date}</td>
-                <td className={`p-3 px-4 align-top text-right tabular-nums ${borderClass}`}>{row.hours}</td>
-                <td className={`p-3 px-4 align-top text-right tabular-nums font-medium ${borderClass}`}>
-                  {row.amount_owed ? `$${row.amount_owed}` : ""}
+        <tbody>
+          {isLoading ? (
+            <tr>
+              <td colSpan={colSpan} className="py-12 text-center">
+                <LoaderCircle className="w-7 h-7 animate-spin text-primary mx-auto" />
+              </td>
+            </tr>
+          ) : rows.length === 0 ? (
+            <tr>
+              <td colSpan={colSpan} className="py-12 text-center text-muted-foreground text-sm">
+                {emptyMessage}
+              </td>
+            </tr>
+          ) : (
+            rows?.map((inv) => (
+              <tr
+                key={inv.id}
+                className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-colors"
+              >
+                {/* Invoice # */}
+                <td className="py-3.5 px-4 font-mono text-xs font-medium text-muted-foreground">
+                  {inv.invoice_number}
                 </td>
-              </tr>
-              {row.description && (
-                <tr>
-                  <td 
-                    colSpan={3} 
-                    className={`px-4 pb-4 pt-1 text-sm text-muted-foreground whitespace-pre-wrap align-top ${isLast ? "border-0" : "border-b border-slate-100"}`}
-                  >
-                    {row.description}
+
+                {/* Date */}
+                <td className="py-3.5 px-4 text-muted-foreground tabular-nums text-xs">
+                  {new Date(inv.created_at).toLocaleDateString()}
+                </td>
+
+                {/* Client */}
+                <td className="py-3.5 px-4">
+                  {inv.client_company_name ? (
+                    <div className="flex flex-col leading-tight">
+                      <span className="font-semibold text-foreground">{inv.client_company_name}</span>
+                      {inv.client_contact_name && (
+                        <span className="text-xs text-muted-foreground">{inv.client_contact_name}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="italic text-muted-foreground opacity-50">Unknown Client</span>
+                  )}
+                </td>
+
+                {/* Total */}
+                <td className="py-3.5 px-4 text-right tabular-nums font-semibold text-foreground">
+                  {(inv.total_amount_owed || 0).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  })}
+                </td>
+
+                {/* Status toggle */}
+                <td className="py-3.5 px-4 text-center">
+                  {readOnlyStatus ? (
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase ${
+                        inv.status === "paid"
+                          ? "bg-secondary text-secondary-foreground"
+                          : inv.status === "overdue"
+                          ? "bg-destructive text-destructive-foreground"
+                          : "bg-muted text-muted-foreground border border-border"
+                      }`}
+                    >
+                      {inv.status || "pending"}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        const current = inv.status || "pending";
+                        const next: InvoiceStatus = current === "paid" ? "pending" : "paid";
+                        onToggleStatus(inv.id, next);
+                      }}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase transition-opacity hover:opacity-75 cursor-pointer ${
+                        inv.status === "paid"
+                          ? "bg-secondary text-secondary-foreground"
+                          : inv.status === "overdue"
+                          ? "bg-destructive text-destructive-foreground"
+                          : "bg-muted text-muted-foreground border border-border"
+                      }`}
+                    >
+                      {inv.status || "pending"}
+                    </button>
+                  )}
+                </td>
+
+                {/* Edit button */}
+                {showEdit && (
+                  <td className="py-3.5 px-4 text-center">
+                    <button
+                      onClick={() => onEdit(inv)}
+                      title="Edit Invoice"
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors text-muted-foreground hover:text-primary hover:bg-accent"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
                   </td>
-                </tr>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+                )}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }

@@ -11,15 +11,10 @@ export function PricingCta() {
       <p className="text-white/60 text-base mb-10 max-w-md mx-auto">
         {CTA_SUBTEXT}
       </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="flex justify-center">
         <Link to="/sign-up">
           <Button className="rounded-full px-8 h-12 bg-white text-slate-900 hover:bg-white/90 font-semibold text-base">
             {CTA_PRIMARY}
-          </Button>
-        </Link>
-        <Link to="/contact">
-          <Button variant="outline" className="rounded-full px-8 h-12 border-white/30 text-white hover:bg-white/10 font-semibold text-base">
-            {CTA_SECONDARY}
           </Button>
         </Link>
       </div>

@@ -8,6 +8,7 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase-client";
 import type { Session } from "@supabase/supabase-js";
+import { getProfile } from "@/services/user.services";
 
 type Profile = {
   id: string;
@@ -33,19 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const userId = session?.user?.id ?? null;
 
-  const fetchProfile = useCallback(async (uid: string) => {
-    const { data, error } = await supabase.from("profiles").select("*");
-    if (error) {
-      setProfile(null);
-      return;
-    }
-    setProfile(data);
-  }, []);
-
   const refreshProfile = useCallback(async () => {
     if (!userId) return;
-    await fetchProfile(userId);
-  }, [userId, fetchProfile]);
+    await getProfile(userId);
+  }, [userId, getProfile]);
 
   useEffect(() => {
     let mounted = true;
@@ -57,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(data.session ?? null);
       // fetch profile once we have session
       if (data.session?.user?.id) {
-        await fetchProfile(data.session.user.id);
+        await getProfile(data.session.user.id);
       } else {
         setProfile(null);
       }
@@ -74,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(newSession);
         if (newSession?.user?.id) {
           setLoading(true);
-          await fetchProfile(newSession.user.id);
+          await getProfile(newSession.user.id);
           setLoading(false);
         } else {
           setProfile(null);

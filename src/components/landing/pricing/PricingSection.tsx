@@ -1,17 +1,15 @@
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PLANS } from "@/constants/pricing";
 import type { Plan } from "@/constants/pricing";
 
-function PlanCard({ plan }: { plan: Plan }) {
+export function PlanCard({ plan }: { plan: Plan }) {
   return (
     <div
-      className={`relative flex flex-col rounded-2xl border p-8 transition-shadow ${
-        plan.featured
-          ? "bg-primary text-primary-foreground border-primary shadow-2xl shadow-primary/20"
-          : "bg-white border-border shadow-sm hover:shadow-md"
-      }`}
+      className={`relative flex flex-col rounded-2xl border p-8 transition-shadow ${plan.featured
+        ? "bg-primary text-primary-foreground border-primary shadow-2xl shadow-primary/20"
+        : "bg-white border-border shadow-sm hover:shadow-md"
+        }`}
     >
       {plan.featured && (
         <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] font-bold tracking-widest uppercase px-4 py-1 rounded-full">
@@ -49,42 +47,15 @@ function PlanCard({ plan }: { plan: Plan }) {
 
       <Link to={plan.ctaHref}>
         <Button
-          className={`w-full rounded-full h-11 font-semibold ${
-            plan.featured
-              ? "bg-white text-primary hover:bg-white/90"
-              : ""
-          }`}
+          className={`w-full rounded-full h-11 font-semibold ${plan.featured
+            ? "bg-white text-primary hover:bg-white/90"
+            : ""
+            }`}
           variant={plan.featured ? "secondary" : "default"}
         >
           {plan.cta}
         </Button>
       </Link>
     </div>
-  );
-}
-
-export function PricingHero() {
-  return (
-    <section className="py-20 md:py-28 px-6 md:px-12 text-center max-w-4xl mx-auto space-y-4">
-      <h1 className="text-4xl md:text-6xl font-serif font-medium leading-tight text-primary">
-        Simple pricing. No hidden fees.<br />
-        <span className="italic">Just faster payouts.</span>
-      </h1>
-      <p className="text-muted-foreground text-lg">
-        Choose the plan that fits your freelance workflow.
-      </p>
-    </section>
-  );
-}
-
-export function PricingCards() {
-  return (
-    <section className="px-6 md:px-12 max-w-4xl mx-auto pb-24">
-      <div className="grid md:grid-cols-2 gap-6 items-start">
-        {PLANS.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} />
-        ))}
-      </div>
-    </section>
   );
 }

@@ -10,8 +10,10 @@ import { DashboardLayout } from "./components/layouts/DashboardLayout";
 import { DashboardHome } from "./pages/DashboardHome";
 import { NewInvoice } from "./pages/NewInvoice";
 import Invoices from "./pages/Invoices";
+import { Clients } from "./pages/Clients";
 import { RequireAuth } from "./components/layouts/RequireAuth";
 import { Settings } from "./pages/Settings";
+import { Templates } from "./pages/Templates";
 
 export const router = createBrowserRouter([
   {
@@ -66,12 +68,20 @@ export const router = createBrowserRouter([
                 element: <DashboardHome />,
               },
               {
-                path: "invoices/new",
+                path: "invoices",
                 element: <NewInvoice />,
               },
               {
                 path: "all-invoices",
                 element: <Invoices />,
+              },
+              {
+                path: "clients",
+                element: <Clients />,
+              },
+              {
+                path: "templates",
+                element: <Templates />,
               },
               {
                 path: "settings",

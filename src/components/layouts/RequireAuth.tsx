@@ -3,12 +3,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { Loader2 } from "lucide-react";
 import { useUser } from "@/store/user.store";
-import { fetchProfile } from "@/services/invoice.services";
 
 export function RequireAuth() {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
-  const { setSession, session, setProfile } = useUser((state) => state);
+  const { setSession, session } = useUser((state) => state);
 
   useEffect(() => {
     let alive = true;
@@ -24,12 +23,7 @@ export function RequireAuth() {
         }
 
         setSession(data.session ?? null);
-
-        const profile = await fetchProfile(data.session.user.id ?? null);
-
-        setProfile(profile);
       } catch (e) {
-        console.error(e);
         if (alive) setSession(null);
       } finally {
         if (alive) setLoading(false);

@@ -2,10 +2,13 @@ import type { Row } from "@/types/entries.types";
 import type { BillToInfo } from "@/store/settings.store";
 
 export const createEmptyRow = (defaultDate?: string): Row => ({
-  work_date: defaultDate || "",
+  service_date: defaultDate || "",
+  item_name: "",
   description: "",
-  hours: "",
-  amount_owed: "",
+  quantity: "",
+  unit_price: "",
+  amount: "",
+  category: null,
 });
 
 export const updateRowInList = (
@@ -36,22 +39,37 @@ export const calculateAutoCalcRows = (
 ): Row[] => {
   const rate = parseFloat(hourlyRate) || 0;
   return rows.map((row) => {
-    const h = parseFloat(row.hours) || 0;
-    if (h && rate) {
-      return { ...row, amount_owed: (h * rate).toFixed(2) };
+    const q = parseFloat(row.quantity) || 0;
+    const p = parseFloat(row.unit_price) || rate;
+    if (q && p) {
+      return { ...row, amount: (q * p).toFixed(2) };
     }
     return row;
   });
 };
 
 export const calculateTotals = (
-  rows: Row[]
-): { subtotal: number; total: number } => {
+  rows: Row[],
+  discountMode: "flat" | "percent" = "flat",
+  discountValue: number = 0,
+  taxRate: number = 0,
+  taxAmount: number = 0
+): { subtotal: number; discountAmt: number; total: number } => {
   const sub = rows.reduce((acc, row) => {
-    const val = parseFloat(row.amount_owed) || 0;
+    const val = parseFloat(row.amount) || 0;
     return acc + val;
   }, 0);
-  return { subtotal: sub, total: sub }; // extend logic for discount/tax later
+  
+  let computedDiscount = 0;
+  if (discountMode === "flat") {
+     computedDiscount = discountValue;
+  } else if (discountMode === "percent") {
+     computedDiscount = sub * (discountValue / 100);
+  }
+  
+  const total = sub - computedDiscount + taxAmount;
+  
+  return { subtotal: sub, discountAmt: computedDiscount, total: total };
 };
 
 export const getBillToOverride = (

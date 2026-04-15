@@ -1,8 +1,11 @@
+import { useState } from "react";
 import type { Row } from "@/types/entries.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Calculator } from "lucide-react";
+import { useInvoiceWorkspace } from "@/store/invoice.store";
+import { cn } from "@/utils/utils";
 
 type LineItemsFormProps = {
   rows: Row[];
@@ -25,6 +28,9 @@ export function LineItemsForm({
   autoCalc,
   hideAutoCalc
 }: LineItemsFormProps) {
+  const { discountMode, setDiscountMode, discountValue, setDiscountValue } = useInvoiceWorkspace();
+  const [showDiscount, setShowDiscount] = useState(discountValue > 0);
+
   return (
     <div className="border-t border-border pt-6">
       <div className="flex items-center justify-between mb-4">
@@ -44,6 +50,17 @@ export function LineItemsForm({
         </div>
       </div>
 
+      <datalist id="historical-items">
+        <option value="Consulting" />
+        <option value="Hardware" />
+        <option value="Software License" />
+        <option value="Maintenance" />
+        <option value="Labor" />
+        <option value="Materials" />
+        <option value="Lawn Mowing" />
+        <option value="Cleaning" />
+      </datalist>
+
       <div className="flex flex-col gap-4">
         {rows.map((row, i) => (
           <div key={i} className="flex flex-col gap-3 p-4 border border-border rounded-lg bg-background/50 relative group">
@@ -59,37 +76,81 @@ export function LineItemsForm({
               </Button>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex flex-col gap-2 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <div className="flex flex-col gap-2 w-full sm:col-span-5">
                 <Label className="text-xs">Date</Label>
                 <Input
                   type="date"
-                  value={row.work_date}
-                  onChange={(e) => updateRow(i, "work_date", e.target.value)}
+                  value={row.service_date}
+                  onChange={(e) => updateRow(i, "service_date", e.target.value)}
                 />
               </div>
-              <div className="flex flex-col gap-2 w-full">
-                <Label className="text-xs">Hours</Label>
+              <div className="flex flex-col gap-2 w-full sm:col-span-7">
+                <Label className="text-xs">Item Name</Label>
+                <Input
+                  type="text"
+                  list="historical-items"
+                  placeholder="Task Name"
+                  value={row.item_name}
+                  onChange={(e) => updateRow(i, "item_name", e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="flex flex-col gap-2 w-full sm:col-span-4">
+                <Label className="text-xs">Qty</Label>
                 <Input
                   type="number"
                   min="0"
-                  step="0.5"
+                  step="0.1"
                   placeholder="0"
-                  value={row.hours}
-                  onChange={(e) => updateRow(i, "hours", e.target.value)}
+                  value={row.quantity}
+                  onChange={(e) => updateRow(i, "quantity", e.target.value)}
+                  className="w-full"
                 />
               </div>
-              <div className="flex flex-col gap-2 w-full">
+              <div className="flex flex-col gap-2 w-full sm:col-span-4">
+                <Label className="text-xs">Price ($)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={row.unit_price}
+                  onChange={(e) => updateRow(i, "unit_price", e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-2 w-full sm:col-span-4">
                 <Label className="text-xs">Amount ($)</Label>
                 <Input
                   type="number"
                   min="0"
                   step="0.01"
                   placeholder="0.00"
-                  value={row.amount_owed}
-                  onChange={(e) => updateRow(i, "amount_owed", e.target.value)}
+                  value={row.amount}
+                  onChange={(e) => updateRow(i, "amount", e.target.value)}
+                  className="w-full font-bold text-primary bg-primary/[0.03]"
                 />
               </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+               <Label className="text-xs text-muted-foreground">Category</Label>
+               <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                  <button
+                     className={cn("px-4 py-1.5 text-xs rounded-md font-semibold transition-all hover:bg-slate-200", row.category === "Labor" ? "bg-white text-primary shadow-sm hover:bg-white" : "text-muted-foreground")}
+                     onClick={() => updateRow(i, "category", "Labor")}
+                  >
+                     Labor
+                  </button>
+                  <button
+                     className={cn("px-4 py-1.5 text-xs rounded-md font-semibold transition-all hover:bg-slate-200", row.category === "Materials" ? "bg-white text-primary shadow-sm hover:bg-white" : "text-muted-foreground")}
+                     onClick={() => updateRow(i, "category", "Materials")}
+                  >
+                     Materials
+                  </button>
+               </div>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -114,6 +175,65 @@ export function LineItemsForm({
             <Calculator className="h-4 w-4" /> Auto-calc
           </Button>
         )}
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-border flex flex-col gap-4">
+         <div className="flex items-center justify-between bg-slate-50/50 p-3 border border-border/40 rounded-xl">
+            <h3 className="text-sm font-semibold text-foreground ml-1">Advanced Discount</h3>
+            <div className="flex bg-slate-200/60 p-1 rounded-lg w-[180px]">
+               <button 
+                  onClick={() => {
+                     setShowDiscount(false);
+                     setDiscountValue(0);
+                  }}
+                  className={cn("flex-1 py-1.5 text-xs font-semibold rounded-md transition-all", !showDiscount ? "bg-white shadow-sm text-foreground" : "text-muted-foreground")}
+               >
+                   Off
+               </button>
+               <button 
+                  onClick={() => setShowDiscount(true)}
+                  className={cn("flex-1 py-1.5 text-xs font-semibold rounded-md transition-all", showDiscount ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}
+               >
+                   Active
+               </button>
+            </div>
+         </div>
+
+         {showDiscount && (
+           <div className="mt-4 flex flex-col gap-4 bg-slate-50/50 p-4 rounded-xl animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-4">
+                  <div className="flex bg-slate-200/60 p-1 rounded-lg w-[200px]">
+                     <button 
+                        onClick={() => setDiscountMode('flat')}
+                        className={cn("flex-1 py-1.5 text-xs font-semibold rounded-md transition-all", discountMode === 'flat' ? "bg-white shadow-sm text-foreground" : "text-muted-foreground")}
+                     >
+                         Flat Amount ($)
+                     </button>
+                     <button 
+                        onClick={() => setDiscountMode('percent')}
+                        className={cn("flex-1 py-1.5 text-xs font-semibold rounded-md transition-all", discountMode === 'percent' ? "bg-white shadow-sm text-foreground" : "text-muted-foreground")}
+                     >
+                         Percentage (%)
+                     </button>
+                  </div>
+                  
+                  <div className="relative">
+                      <Input 
+                         type="number"
+                         min="0"
+                         step={discountMode === 'percent' ? "1" : "0.01"}
+                         value={discountValue || ""}
+                         onChange={e => setDiscountValue(parseFloat(e.target.value) || 0)}
+                         className="w-32 pr-8"
+                         placeholder="0"
+                      />
+                      <span className="absolute right-3 top-2 text-sm text-muted-foreground font-medium">
+                         {discountMode === 'percent' ? "%" : "$"}
+                      </span>
+                  </div>
+              </div>
+           </div>
+         )}
       </div>
     </div>
   );

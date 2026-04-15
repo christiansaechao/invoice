@@ -9,12 +9,18 @@ import {
   Settings,
   LogOut,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Users,
+  Palette
 } from "lucide-react";
+import { useLogo } from "@/api/user.api";
+import { useUser } from "@/store/user.store";
 
 export function DashboardLayout() {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { session } = useUser();
+  const { data: logoUrl } = useLogo(session?.user?.id ?? undefined);
 
   async function signOut() {
     try {
@@ -34,8 +40,22 @@ export function DashboardLayout() {
       >
         <div className={`flex items-center mb-4 ${isCollapsed ? "justify-center" : "justify-between"}`}>
           {!isCollapsed && (
-            <div className="font-bold text-xl tracking-tight overflow-hidden whitespace-nowrap">
-              Pay That Man
+            <div className="flex items-center gap-3 overflow-hidden">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="h-8 w-8 object-contain rounded" />
+              ) : (
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xs">
+                  R
+                </div>
+              )}
+              <div className="font-bold text-xl tracking-tight whitespace-nowrap">
+                Reciept
+              </div>
+            </div>
+          )}
+          {isCollapsed && logoUrl && (
+            <div className="mt-1">
+              <img src={logoUrl} alt="Logo" className="h-8 w-8 object-contain rounded mx-auto" />
             </div>
           )}
           <Button
@@ -60,6 +80,16 @@ export function DashboardLayout() {
               {!isCollapsed && <span>Dashboard</span>}
             </Button>
           </Link>
+          <Link to="/dashboard/invoices">
+            <Button
+              variant={location.pathname === "/dashboard/invoices" ? "secondary" : "ghost"}
+              className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
+              title={isCollapsed ? "New Invoice" : undefined}
+            >
+              <PlusCircle className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span>New Invoice</span>}
+            </Button>
+          </Link>
           <Link to="/dashboard/all-invoices">
             <Button
               variant={location.pathname === "/dashboard/all-invoices" ? "secondary" : "ghost"}
@@ -67,17 +97,27 @@ export function DashboardLayout() {
               title={isCollapsed ? "Invoices" : undefined}
             >
               <Receipt className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span>Invoices</span>}
+              {!isCollapsed && <span>All Invoices</span>}
             </Button>
           </Link>
-          <Link to="/dashboard/invoices/new">
+          <Link to="/dashboard/clients">
             <Button
-              variant={location.pathname === "/dashboard/invoices/new" ? "secondary" : "ghost"}
+              variant={location.pathname === "/dashboard/clients" ? "secondary" : "ghost"}
               className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
-              title={isCollapsed ? "New Invoice" : undefined}
+              title={isCollapsed ? "Clients" : undefined}
             >
-              <PlusCircle className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span>New Invoice</span>}
+              <Users className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span>Clients</span>}
+            </Button>
+          </Link>
+          <Link to="/dashboard/templates">
+            <Button
+              variant={location.pathname === "/dashboard/templates" ? "secondary" : "ghost"}
+              className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
+              title={isCollapsed ? "Templates" : undefined}
+            >
+              <Palette className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span>Templates</span>}
             </Button>
           </Link>
           <Link to="/dashboard/settings">

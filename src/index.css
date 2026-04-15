@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
@@ -6,7 +6,7 @@
 
 @theme inline {
   --font-sans: "Inter", system-ui, sans-serif;
-  --font-serif: "Playfair Display", serif;
+  --font-serif: "Manrope", system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -32,66 +32,69 @@
 }
 
 :root {
-  /* Invoice Legacy Vars */
-  --ink: #0f172a;
+  /* Legacy invoice vars */
+  --ink: #121212;
   --line: #e2e8f0;
   --soft: #f8fafc;
   --radius: 0.6rem;
 
-  /* Shadcn / New Theme (Navy & White) */
+  /* Brand palette */
   --background: #ffffff;
-  --foreground: #0f172a;
-  /* Slate 900 */
+  --foreground: #121212;
 
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #121212;
 
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #121212;
 
-  --primary: #0a192f;
-  /* Deep Navy */
+  /* Primary — #6200EE vivid purple */
+  --primary: #6200EE;
   --primary-foreground: #ffffff;
 
-  --secondary: #f1f5f9;
-  /* Slate 100 */
-  --secondary-foreground: #0f172a;
+  /* Secondary — #03DAC6 teal (light bg for secondary buttons / chips) */
+  --secondary: #e8faf8;
+  --secondary-foreground: #00695c;
 
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  /* Slate 500 */
+  --muted: #f4f4f6;
+  --muted-foreground: #6b6b80;
 
-  --accent: #f8fafc;
-  --accent-foreground: #0f172a;
+  /* Accent — soft purple tint */
+  --accent: #f0e6ff;
+  --accent-foreground: #6200EE;
 
-  --destructive: #ef4444;
+  /* Destructive — #FF0266 tertiary pink-red */
+  --destructive: #FF0266;
   --destructive-foreground: #ffffff;
 
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #0a192f;
+  --border: #e2e2ea;
+  --input: #e2e2ea;
+  --ring: #6200EE;
 }
 
 .dark {
-  --background: #020817;
-  --foreground: #f8fafc;
-  --card: #020817;
-  --card-foreground: #f8fafc;
-  --popover: #020817;
-  --popover-foreground: #f8fafc;
-  --primary: #f8fafc;
-  --primary-foreground: #0f172a;
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #1e293b;
-  --accent-foreground: #f8fafc;
-  --destructive: #7f1d1d;
-  --destructive-foreground: #f8fafc;
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #cbd5e1;
+  --background: #121212;
+  --foreground: #f0f0f5;
+  --card: #1e1e2a;
+  --card-foreground: #f0f0f5;
+  --popover: #1e1e2a;
+  --popover-foreground: #f0f0f5;
+  /* Primary brightened slightly for dark bg readability */
+  --primary: #bb86fc;
+  --primary-foreground: #121212;
+  /* Secondary teal */
+  --secondary: #03DAC6;
+  --secondary-foreground: #121212;
+  --muted: #2a2a38;
+  --muted-foreground: #9090aa;
+  --accent: #2e1f4a;
+  --accent-foreground: #bb86fc;
+  /* Destructive keeps full pink-red */
+  --destructive: #FF0266;
+  --destructive-foreground: #ffffff;
+  --border: #2e2e3e;
+  --input: #2e2e3e;
+  --ring: #bb86fc;
 }
 
 @layer base {
