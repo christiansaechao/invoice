@@ -5,13 +5,18 @@ import { FromInfo } from "../FromInfo";
 import { LineItemsTable } from "../LineItemsTable";
 import { Totals } from "../Totals";
 import { Footer } from "../Footer";
+import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function StandardLayout({ data }: { data: any }) {
     const { invoiceNumber, date, dueDate, billToOverride, rows, hourlyRate, subtotal, total } = data;
+    const t = TEMPLATE_THEMES.standard;
     
     return (
-        <div className="flex flex-col w-full h-full">
-            <div className="flex gap-5 justify-between items-start pt-7 px-7 pb-4 border-b border-border/40 bg-white/30">
+        <div className="flex flex-col w-full h-full" style={{ backgroundColor: t.bg.main }}>
+            <div 
+              className="flex gap-5 justify-between items-start pt-7 px-7 pb-4 border-b" 
+              style={{ backgroundColor: `${t.bg.header}4D`, borderColor: t.border }}
+            >
               <Header />
               <MetaInfo
                 invoiceNumber={invoiceNumber}

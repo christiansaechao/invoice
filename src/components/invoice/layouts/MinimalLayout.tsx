@@ -4,12 +4,14 @@ import { BillTo } from "../BillTo";
 import { LineItemsTable } from "../LineItemsTable";
 import { Totals } from "../Totals";
 import { Footer } from "../Footer";
+import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function MinimalLayout({ data }: { data: any }) {
     const { invoiceNumber, date, dueDate, billToOverride, rows, hourlyRate, subtotal, total } = data;
+    const t = TEMPLATE_THEMES.minimal;
     
     return (
-        <div className="flex flex-col w-full h-full">
+        <div className="flex flex-col w-full h-full" style={{ backgroundColor: t.bg.main, color: t.text.main }}>
             <div className="flex gap-5 justify-between items-start pt-7 px-7 pb-4 border-none">
               <Header />
               <MetaInfo
@@ -21,7 +23,7 @@ export function MinimalLayout({ data }: { data: any }) {
 
             <div className="pt-12 px-7">
               <div className="mb-12">
-                <BillTo override={billToOverride} />
+                <BillTo override={billToOverride} variant="minimal" />
               </div>
 
               <LineItemsTable rows={rows} />

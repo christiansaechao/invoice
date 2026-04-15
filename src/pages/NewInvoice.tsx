@@ -4,7 +4,6 @@ import { LineItemsForm } from "../components/invoice/LineItemsForm";
 import { InvoiceActionButtons } from "../components/invoice/InvoiceActionButtons";
 import { saveInvoice, fetchClients, fetchLastInvoiceNumberByClient } from "@/services/invoice.services";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase-client";
 import { getCurrentSubscription } from "@/services/subscription.services";
 
 import {
