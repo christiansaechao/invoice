@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserSettings, updateUserSettings } from "@/services/settings.services";
 
+import type { PaymentMethods } from "@/types/invoice.types";
+
 export const useFetchUserSettings = () => {
     return useQuery({
         queryKey: ["user-settings"],
@@ -16,6 +18,7 @@ export const useUpdateUserSettings = () => {
             default_template_id?: string;
             logo_url?: string | null;
             payment_link?: string | null;
+            payment_methods?: PaymentMethods | null;
         }) => updateUserSettings(updates),
         onSuccess: (data) => {
             queryClient.setQueryData(["user-settings"], data);

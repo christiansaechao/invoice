@@ -1,9 +1,10 @@
 import { BillTo } from "../BillTo";
 import { FromInfo } from "../FromInfo";
+import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function CleanMinimalistSpaLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, billToOverride, rows, subtotal, total } = data;
+    const { invoiceNumber, date, billToOverride, rows, subtotal, total, paymentLink, status, currency } = data;
     const t = TEMPLATE_THEMES.spa;
 
     return (
@@ -83,6 +84,16 @@ export function CleanMinimalistSpaLayout({ data }: { data: any }) {
                 <p className="text-[9px] max-w-sm uppercase tracking-widest leading-relaxed" style={{ color: t.text.muted }}>
                     Please remit payment within 14 days of the issue date. All major credit cards, bank transfers, and digital wallets accepted.
                 </p>
+            </div>
+
+            <div className="px-10">
+                <PaymentSection 
+                    paymentLink={paymentLink} 
+                    status={status} 
+                    total={total} 
+                    currency={currency} 
+                    templateSlug="spa" 
+                />
             </div>
         </div>
     );

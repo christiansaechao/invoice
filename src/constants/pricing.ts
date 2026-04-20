@@ -1,16 +1,31 @@
 
-
 // ─── Brand ───────────────────────────────────────────────────────────────────
-export const BRAND_NAME = "Reciept";
+export const BRAND_NAME = "Receipts";
 export const BRAND_TAGLINE = "Precision Fluidity for Creators. The modern operating system for creative capital.";
+
+// ─── Shared Types ─────────────────────────────────────────────────────────────
+export type SubscriptionTier = "starter" | "pro" | "teams";
+export type BillingInterval = "month" | "year";
+
+export interface UserSubscription {
+  tier: SubscriptionTier;
+  status: string;
+  billing_interval: BillingInterval;
+  cancel_at_period_end: boolean;
+  current_period_end?: string;
+  magic_credits?: number;
+  stripe_customer_id?: string | null;
+}
 
 // ─── Plans ────────────────────────────────────────────────────────────────────
 export type Plan = {
-  id: string;
+  id: SubscriptionTier;
   tier: string;
   name: string;
-  price: string;
-  period: string;
+  price: {
+    month: number;
+    year: number;
+  };
   description: string;
   cta: string;
   ctaHref: string;
@@ -18,41 +33,67 @@ export type Plan = {
   features: string[];
 };
 
+export const FEATURES_STARTER = [
+  "Up to 3 active clients",
+  "5 invoices per month",
+  "3 Magic AI generations",
+  "Standard invoice templates",
+  "Basic dashboard analytics",
+];
+
+export const FEATURES_PRO = [
+  "Unlimited clients",
+  "Unlimited invoices",
+  "50 Magic AI generations / month",
+  "All 8 premium invoice templates",
+  "Advanced dashboard & analytics",
+  "Custom hourly rates",
+  "Remove Receipts watermark",
+  "Priority email support",
+];
+
+export const PRICES = {
+  pro: {
+    month: 19,
+    year: 180,
+  },
+} as const;
+
+export const PRICE_IDS_STRIPE = {
+  pro: {
+    month: import.meta.env.VITE_STRIPE_PRO_MONTHLY_PRICE_ID as string,
+    year: import.meta.env.VITE_STRIPE_PRO_ANNUAL_PRICE_ID as string,
+  },
+} as const;
+
+export const TIER_LABELS: Record<SubscriptionTier, string> = {
+  starter: "Starter (Free)",
+  pro: "Pro",
+  teams: "Teams",
+};
+
 export const PLANS: Plan[] = [
   {
     id: "starter",
     tier: "BASIC TIER",
     name: "Starter",
-    price: "$0",
-    period: "/month",
+    price: { month: 0, year: 0 },
     description: "Perfect for freelancers just starting their journey.",
     cta: "Get Started for Free",
     ctaHref: "/sign-up",
     featured: false,
-    features: [
-      "Up to 3 active clients",
-      "5 invoices per month",
-      "Basic time tracking",
-      "Standard exports",
-    ],
+    features: FEATURES_STARTER,
   },
   {
     id: "pro",
     tier: "PROFESSIONAL TIER",
     name: "Pro",
-    price: "$12",
-    period: "/month",
+    price: PRICES.pro,
     description: "Everything you need to manage a growing business.",
     cta: "Start 14-Day Free Trial",
     ctaHref: "/sign-up?plan=pro",
     featured: true,
-    features: [
-      "Unlimited clients",
-      "Unlimited invoices",
-      "Custom default hourly rates",
-      "Remove watermark",
-      "Advanced dashboard & analytics",
-    ],
+    features: FEATURES_PRO,
   },
 ];
 
@@ -66,7 +107,7 @@ export type ComparisonRow = {
 export const COMPARISON_ROWS: ComparisonRow[] = [
   { feature: "Active Clients",    starter: "3",         pro: "Unlimited" },
   { feature: "Monthly Invoices",  starter: "5",         pro: "Unlimited" },
-  { feature: "Time Tracking",     starter: true,        pro: true },
+  { feature: "Magic AI Credits",  starter: "3",         pro: "50/mo" },
   { feature: "Custom Rates",      starter: false,       pro: true },
   { feature: "White-labeling",    starter: false,       pro: true },
   { feature: "Analytics",         starter: "Basic",     pro: "Advanced" },
@@ -98,4 +139,4 @@ export const CTA_HEADLINE = "Stop chasing payments and start tracking your time.
 export const CTA_SUBTEXT  = "Create your free account in 30 seconds. No credit card required to get started.";
 export const CTA_PRIMARY  = "Create Free Account";
 export const CTA_SECONDARY = "Speak to Sales";
-export const SOCIAL_PROOF = "Trusted by 50,000+ independent contractors and leads.";
+export const SOCIAL_PROOF = "Trusted by 5,000+ independent contractors and leads.";

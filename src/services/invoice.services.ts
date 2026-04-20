@@ -7,7 +7,8 @@ export const fetchInvoices = async () => {
 
   if (error) {
     throw new Error(
-      "There was an issue trying to retrieve the current users invoices: " + error
+      "There was an issue trying to retrieve the current users invoices: " +
+        error,
     );
   }
 
@@ -23,7 +24,7 @@ export const fetchInvoicesWithTotals = async () => {
   if (error) {
     throw new Error(
       "There was an issue when trying to retrieve all the invoices for the current user: " +
-      error
+        error,
     );
   }
 
@@ -44,7 +45,9 @@ export const fetchClients = async () => {
 
 export const createClient = async (clientData: any) => {
   // Try to grab auth session for user_id mapping
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const insertPayload = user ? { ...clientData, user_id: user.id } : clientData;
 
   const { data, error } = await supabase
@@ -65,7 +68,8 @@ export const fetchEntries = async () => {
 
   if (error) {
     throw new Error(
-      "There was an issue trying to retrieve the current users entries: " + error
+      "There was an issue trying to retrieve the current users entries: " +
+        error,
     );
   }
 
@@ -86,7 +90,7 @@ export const fetchEntriesByInvoiceId = async (invoiceId: string) => {
   // Clean DB timestamps (2026-04-01T00:00:00 -> 2026-04-01) for correct HTML <input type="date"> binding
   return (data || []).map((entry: any) => ({
     ...entry,
-    service_date: entry.service_date ? entry.service_date.split('T')[0] : ''
+    service_date: entry.service_date ? entry.service_date.split("T")[0] : "",
   }));
 };
 
@@ -155,6 +159,9 @@ export const saveInvoice = async (
     tax_rate?: number;
     tax_amount?: number;
     total_amount?: number;
+    auto_nudge?: boolean;
+    nudge_profile: "chill" | "professional" | "direct";
+    work_week_only: boolean;
     notes?: string;
     terms?: string;
     parent_recurring_id?: string | null;
@@ -162,7 +169,7 @@ export const saveInvoice = async (
     last_email_at?: string | null;
     payment_link?: string | null;
     template_id?: string | null;
-  }
+  },
 ) => {
   alert("saving invoice");
 
@@ -173,7 +180,7 @@ export const saveInvoice = async (
       invoice_number: invoiceNumber ? parseInt(invoiceNumber, 10) : null,
       invoice_date: invoiceDate || null,
       due_date: dueDate || null,
-      ...invoiceDetails
+      ...invoiceDetails,
     })
     .select()
     .single();
@@ -226,7 +233,10 @@ export const saveInvoice = async (
   };
 };
 
-export const updateInvoiceStatus = async (invoiceId: string, status: InvoiceStatus) => {
+export const updateInvoiceStatus = async (
+  invoiceId: string,
+  status: InvoiceStatus,
+) => {
   const { data, error } = await supabase
     .from("invoices")
     .update({ status })
@@ -263,7 +273,7 @@ export const updateFullInvoice = async (
     last_email_at?: string | null;
     payment_link?: string | null;
     template_id?: string | null;
-  }
+  },
 ) => {
   const { error: invErr } = await supabase
     .from("invoices")
@@ -272,7 +282,7 @@ export const updateFullInvoice = async (
       invoice_number: invoiceNumber ? parseInt(invoiceNumber, 10) : null,
       invoice_date: invoiceDate || null,
       due_date: dueDate || null,
-      ...invoiceDetails
+      ...invoiceDetails,
     })
     .eq("id", invoiceId);
 

@@ -1,9 +1,10 @@
 import { BillTo } from "../BillTo";
 import { FromInfo } from "../FromInfo";
+import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function ModernCorporateLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, dueDate, billToOverride, rows, total } = data;
+    const { invoiceNumber, date, dueDate, billToOverride, rows, total, paymentLink, status, currency } = data;
     const t = TEMPLATE_THEMES.corporate;
 
     return (
@@ -82,6 +83,16 @@ export function ModernCorporateLayout({ data }: { data: any }) {
             <div className="mx-10 mt-6 text-white rounded-xl px-6 py-5 flex justify-between items-center" style={{ backgroundColor: t.bg.header }}>
                 <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: t.accent }}>Total Amount Due</div>
                 <div className="text-2xl font-black tracking-tight">${total?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+            </div>
+
+            <div className="px-10">
+                <PaymentSection 
+                    paymentLink={paymentLink} 
+                    status={status} 
+                    total={total} 
+                    currency={currency} 
+                    templateSlug="corporate" 
+                />
             </div>
 
             <div className="px-10 mt-8 text-xs text-center" style={{ color: t.text.muted }}>

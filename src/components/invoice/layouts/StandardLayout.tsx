@@ -5,10 +5,11 @@ import { FromInfo } from "../FromInfo";
 import { LineItemsTable } from "../LineItemsTable";
 import { Totals } from "../Totals";
 import { Footer } from "../Footer";
+import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function StandardLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, dueDate, billToOverride, rows, hourlyRate, subtotal, total } = data;
+    const { invoiceNumber, date, dueDate, billToOverride, rows, hourlyRate, subtotal, total, paymentLink, status, currency } = data;
     const t = TEMPLATE_THEMES.standard;
     
     return (
@@ -39,6 +40,14 @@ export function StandardLayout({ data }: { data: any }) {
                 discount={0}
                 tax={0}
                 total={total}
+              />
+
+              <PaymentSection 
+                paymentLink={paymentLink} 
+                status={status} 
+                total={total} 
+                currency={currency} 
+                templateSlug="standard" 
               />
             </div>
 

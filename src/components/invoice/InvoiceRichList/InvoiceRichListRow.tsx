@@ -1,10 +1,21 @@
 import { useState } from "react";
-import { Pencil, Download, MoreVertical, AlertTriangle, Loader2 } from "lucide-react";
+import { 
+  Pencil, 
+  Download, 
+  MoreVertical, 
+  AlertTriangle, 
+  Loader2, 
+  History,
+  Eye,
+  MousePointer2
+} from "lucide-react";
 import type { InvoicesWithTotals, InvoiceStatus } from "@/types/invoice.types";
 import { StatusDropdown, STATUS_CONFIG } from "./InvoiceStatusDropdown";
 import { useUser } from "@/store/user.store";
 import { downloadInvoicePdf } from "@/services/pdf.services";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/currency";
+import { useConvertQuote } from "@/hooks/useConvertQuote";
 
 // ─── Avatar helpers ───────────────────────────────────────────────────────────
 
@@ -46,6 +57,7 @@ export function InvoiceRichListRow({
   const avatar = avatarSlot(inv.client_company_name);
   const { session } = useUser();
   const [isDownloading, setIsDownloading] = useState(false);
+  const { mutate: convertQuote, isPending: isConverting } = useConvertQuote();
 
   const handleDownloadPdf = async () => {
     if (!session?.access_token || isDownloading) {
@@ -107,20 +119,41 @@ export function InvoiceRichListRow({
         </p>
       </div>
 
-      {/* Invoice number */}
-      <div className="hidden sm:block w-[100px] flex-shrink-0">
-        <p className="font-mono text-xs text-muted-foreground">
-          #{inv.invoice_number}
-        </p>
+      {/* Invoice number + Tracking */}
+      <div className="hidden sm:flex flex-col gap-0.5 w-[100px] flex-shrink-0">
+        <div className="flex items-center gap-1">
+          <p className="font-mono text-xs text-muted-foreground">
+            #{inv.invoice_number}
+          </p>
+          {inv.doc_type === "quote" && (
+            <span className="bg-amber-100/80 text-amber-800 text-[9px] px-1 rounded font-bold uppercase tracking-wider border border-amber-200">Quote</span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 h-4">
+          {inv.link_clicked_at ? (
+            <div 
+              className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded border border-emerald-100 cursor-help"
+              title={`Clicked: ${new Date(inv.link_clicked_at).toLocaleString()}`}
+            >
+              <MousePointer2 className="w-2.5 h-2.5" />
+              <span>CLICKED</span>
+            </div>
+          ) : inv.email_opened_at ? (
+            <div 
+              className="flex items-center gap-1 text-[9px] font-bold text-blue-600 bg-blue-50 px-1 rounded border border-blue-100 cursor-help"
+              title={`Opened: ${new Date(inv.email_opened_at).toLocaleString()}`}
+            >
+              <Eye className="w-2.5 h-2.5" />
+              <span>OPENED</span>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* Amount */}
       <div className="w-[100px] flex-shrink-0 text-right pr-4">
         <span className={`font-bold text-sm tabular-nums ${cfg.amountClass}`}>
-          {(inv.total_amount_owed || 0).toLocaleString("en-US", {
-            style: "currency",
-            currency: "USD",
-          })}
+          {formatCurrency(inv.total_amount_owed || 0, inv.currency || 'USD')}
         </span>
       </div>
 
@@ -160,10 +193,24 @@ export function InvoiceRichListRow({
         )}
 
         {status === "pending" && (
-          <>
-            <span className="text-[10px] font-bold tracking-widest uppercase text-secondary-foreground">
-              REMIND
-            </span>
+          <div className="flex flex-col items-end gap-1">
+            {inv.doc_type === 'quote' && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); convertQuote(inv.id); }}
+                disabled={isConverting}
+                className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 hover:bg-amber-100 transition-colors uppercase tracking-widest disabled:opacity-50"
+                title="Convert this quote to a payable invoice"
+              >
+                {isConverting ? "CONVERTING..." : "CONVERT"}
+              </button>
+            )}
+            <div 
+              className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-secondary-foreground cursor-help group"
+              title={inv.last_nudge_at ? `Last nudge: ${new Date(inv.last_nudge_at).toLocaleDateString()} (${inv.nudge_count || 0} sent)` : "No nudges sent yet"}
+            >
+              {inv.last_nudge_at && <History className="w-3 h-3 text-secondary-foreground/60 group-hover:text-secondary-foreground transition-colors" />}
+              <span>REMIND</span>
+            </div>
             <button
               onClick={() => onEdit(inv)}
               className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
@@ -171,7 +218,7 @@ export function InvoiceRichListRow({
             >
               <MoreVertical className="w-4 h-4" />
             </button>
-          </>
+          </div>
         )}
 
         {status === "overdue" && (

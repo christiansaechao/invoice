@@ -1,9 +1,10 @@
 import { BillTo } from "../BillTo";
 import { FromInfo } from "../FromInfo";
+import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function BotanicalLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, billToOverride, rows, subtotal, total } = data;
+    const { invoiceNumber, date, billToOverride, rows, subtotal, total, paymentLink, status, currency } = data;
     const t = TEMPLATE_THEMES.botanical;
 
     return (
@@ -68,6 +69,16 @@ export function BotanicalLayout({ data }: { data: any }) {
                         <span className="text-2xl font-bold">${total?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     </div>
                 </div>
+            </div>
+
+            <div className="px-12">
+                <PaymentSection 
+                    paymentLink={paymentLink} 
+                    status={status} 
+                    total={total} 
+                    currency={currency} 
+                    templateSlug="botanical" 
+                />
             </div>
         </div>
     );

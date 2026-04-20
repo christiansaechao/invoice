@@ -1,9 +1,10 @@
 import { BillTo } from "../BillTo";
 import { FromInfo } from "../FromInfo";
+import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function ArtisanLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, dueDate, billToOverride, rows, total } = data;
+    const { invoiceNumber, date, dueDate, billToOverride, rows, total, paymentLink, status, currency } = data;
     const t = TEMPLATE_THEMES.artisan;
     const g = t.gradient!;
 
@@ -107,6 +108,16 @@ export function ArtisanLayout({ data }: { data: any }) {
                         <p className="mt-1">Thank you for the opportunity ✦</p>
                     </div>
                 </div>
+            </div>
+
+            <div className="px-10">
+                <PaymentSection 
+                    paymentLink={paymentLink} 
+                    status={status} 
+                    total={total} 
+                    currency={currency} 
+                    templateSlug="artisan" 
+                />
             </div>
         </div>
     );

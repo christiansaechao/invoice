@@ -3,33 +3,14 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
-
-// ─── Plan features ────────────────────────────────────────────────────────────
-
-const FEATURES_STARTER = [
-  "Up to 3 active clients",
-  "5 invoices per month",
-  "3 Magic AI generations",
-  "Standard invoice templates",
-  "Basic dashboard analytics",
-];
-
-const FEATURES_PRO = [
-  "Unlimited clients",
-  "Unlimited invoices",
-  "50 Magic AI generations / month",
-  "All 8 premium invoice templates",
-  "Advanced dashboard & analytics",
-  "Custom hourly rates",
-  "Remove Receipts watermark",
-  "Priority email support",
-];
-
-const PRICES = { pro: { month: 19, year: 180 } } as const;
+import { 
+  FEATURES_STARTER, 
+  FEATURES_PRO, 
+  PRICES, 
+  type BillingInterval 
+} from "@/constants/pricing";
 
 // ─── Billing toggle ───────────────────────────────────────────────────────────
-
-type BillingInterval = "month" | "year";
 
 function BillingToggle({
   interval,

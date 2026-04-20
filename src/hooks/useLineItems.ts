@@ -13,7 +13,18 @@ export function useLineItems(initialRows: Row[] = [createEmptyRow()]) {
   const [hourlyRate, setHourlyRate] = useState("");
 
   const updateRow = (index: number, field: keyof Row, value: string) => {
-    setRows(prev => updateRowInList(prev, index, field, value));
+    setRows(prev => {
+        let newList = updateRowInList(prev, index, field, value);
+        if (field === 'quantity' || field === 'unit_price') {
+             newList = calculateAutoCalcRows(newList, hourlyRate); 
+        }
+        return newList;
+    });
+  };
+
+  const setHourlyRateReactive = (val: string) => {
+    setHourlyRate(val);
+    setRows(prev => calculateAutoCalcRows(prev, val));
   };
 
   const addRow = () => {
@@ -33,18 +44,13 @@ export function useLineItems(initialRows: Row[] = [createEmptyRow()]) {
     setRows(prev => removeRowFromList(prev, index));
   };
 
-  const autoCalc = () => {
-    setRows(prev => calculateAutoCalcRows(prev, hourlyRate));
-  };
-
   return {
     rows,
     hourlyRate,
     setRows,
-    setHourlyRate,
+    setHourlyRate: setHourlyRateReactive,
     updateRow,
     addRow,
-    removeRow,
-    autoCalc
+    removeRow
   };
 }

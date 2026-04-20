@@ -36,6 +36,9 @@ function toLegacyData(document: InvoiceDocumentData) {
     hourlyRate: String(document.totals.hourlyRate ?? ""),
     subtotal: document.totals.subtotal,
     total: document.totals.total,
+    currency: document.totals.currency,
+    paymentLink: document.paymentLink,
+    status: document.status,
   };
 }
 

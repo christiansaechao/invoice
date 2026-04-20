@@ -14,8 +14,6 @@ type LineItemsFormProps = {
   updateRow: (index: number, field: keyof Row, value: string) => void;
   removeRow: (index: number) => void;
   addRow: () => void;
-  autoCalc: () => void;
-  hideAutoCalc?: boolean;
 };
 
 export function LineItemsForm({
@@ -24,17 +22,15 @@ export function LineItemsForm({
   setHourlyRate,
   updateRow,
   removeRow,
-  addRow,
-  autoCalc,
-  hideAutoCalc
+  addRow
 }: LineItemsFormProps) {
   const { discountMode, setDiscountMode, discountValue, setDiscountValue } = useInvoiceWorkspace();
   const [showDiscount, setShowDiscount] = useState(discountValue > 0);
 
   return (
-    <div className="border-t border-border pt-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold tracking-tight">Line Items</h2>
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Line Items</h2>
         <div className="flex items-center gap-2">
           <Label htmlFor="hourlyRate" className="whitespace-nowrap">Rate ($)</Label>
           <Input
@@ -170,11 +166,6 @@ export function LineItemsForm({
         <Button variant="outline" className="w-full sm:w-auto gap-2" onClick={addRow}>
           <Plus className="h-4 w-4" /> Add Row
         </Button>
-        {!hideAutoCalc && (
-          <Button variant="secondary" className="w-full sm:w-auto gap-2" onClick={autoCalc}>
-            <Calculator className="h-4 w-4" /> Auto-calc
-          </Button>
-        )}
       </div>
 
       <div className="mt-8 pt-6 border-t border-border flex flex-col gap-4">

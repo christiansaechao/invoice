@@ -4,10 +4,11 @@ import { BillTo } from "../BillTo";
 import { LineItemsTable } from "../LineItemsTable";
 import { Totals } from "../Totals";
 import { Footer } from "../Footer";
+import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function MinimalLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, dueDate, billToOverride, rows, hourlyRate, subtotal, total } = data;
+    const { invoiceNumber, date, dueDate, billToOverride, rows, hourlyRate, subtotal, total, paymentLink, status, currency } = data;
     const t = TEMPLATE_THEMES.minimal;
     
     return (
@@ -34,6 +35,14 @@ export function MinimalLayout({ data }: { data: any }) {
                 discount={0}
                 tax={0}
                 total={total}
+              />
+
+              <PaymentSection 
+                paymentLink={paymentLink} 
+                status={status} 
+                total={total} 
+                currency={currency} 
+                templateSlug="minimal" 
               />
             </div>
 

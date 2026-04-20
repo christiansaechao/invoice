@@ -15,6 +15,9 @@ type InvoiceStoreState = {
     workspaceMode: WorkspaceMode;
     setWorkspaceMode: (mode: WorkspaceMode) => void;
     
+    documentType: "invoice" | "quote";
+    setDocumentType: (type: "invoice" | "quote") => void;
+    
     // One-Time Form Data
     paymentTerms: PaymentTerms;
     setPaymentTerms: (terms: PaymentTerms) => void;
@@ -28,11 +31,22 @@ type InvoiceStoreState = {
     setDiscountMode: (mode: "flat" | "percent") => void;
     discountValue: number;
     setDiscountValue: (val: number) => void;
+
+    // Nudge Config
+    nudgeConfig: {
+        enabled: boolean;
+        profile: 'chill' | 'professional' | 'direct';
+        workWeekOnly: boolean;
+    };
+    setNudgeConfig: (config: Partial<InvoiceStoreState['nudgeConfig']>) => void;
 };
 
 export const useInvoiceWorkspace = create<InvoiceStoreState>((set) => ({
     workspaceMode: "one-time",
     setWorkspaceMode: (mode) => set({ workspaceMode: mode }),
+    
+    documentType: "invoice",
+    setDocumentType: (type) => set({ documentType: type }),
     
     paymentTerms: "receipt",
     setPaymentTerms: (terms) => set({ paymentTerms: terms }),
@@ -50,5 +64,14 @@ export const useInvoiceWorkspace = create<InvoiceStoreState>((set) => ({
     discountMode: "flat",
     setDiscountMode: (mode) => set({ discountMode: mode }),
     discountValue: 0,
-    setDiscountValue: (val) => set({ discountValue: val })
+    setDiscountValue: (val) => set({ discountValue: val }),
+
+    nudgeConfig: {
+        enabled: false,
+        profile: 'chill',
+        workWeekOnly: true
+    },
+    setNudgeConfig: (config) => set((state) => ({
+        nudgeConfig: { ...state.nudgeConfig, ...config }
+    }))
 }));

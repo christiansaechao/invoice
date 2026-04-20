@@ -1,54 +1,22 @@
 import { useState } from "react";
-import { Check, Zap, Loader2, AlertCircle, Sparkles, CreditCard, Crown } from "lucide-react";
+import { Check, Zap, Loader2, AlertCircle, Sparkles, Crown } from "lucide-react";
 import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/store/user.store";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { 
+  type SubscriptionTier, 
+  type BillingInterval, 
+  type UserSubscription,
+  FEATURES_PRO,
+  PRICES,
+  PRICE_IDS_STRIPE as PRICE_IDS,
+  TIER_LABELS
+} from "@/constants/pricing";
 
-type SubscriptionTier = "starter" | "pro" | "teams";
-type BillingInterval = "month" | "year";
-
-interface UserSubscription {
-  tier: SubscriptionTier;
-  status: string;
-  billing_interval: BillingInterval;
-  cancel_at_period_end: boolean;
-  current_period_end?: string;
-  magic_credits?: number;
-  stripe_customer_id?: string | null;
-}
-
-interface BillingSectionProps {
+interface MySubscriptionSectionProps {
   subscription?: UserSubscription | null;
 }
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const FEATURES_PRO = [
-  "Unlimited clients & invoices",
-  "50 Magic AI generations / month",
-  "All 8 premium invoice templates",
-  "Advanced analytics dashboard",
-  "Custom hourly rates",
-  "Remove Receipts watermark",
-  "Priority email support",
-];
-
-const PRICES = { pro: { month: 19, year: 180 } } as const;
-
-const PRICE_IDS = {
-  pro: {
-    month: import.meta.env.VITE_STRIPE_PRO_MONTHLY_PRICE_ID as string,
-    year: import.meta.env.VITE_STRIPE_PRO_ANNUAL_PRICE_ID as string,
-  },
-} as const;
-
-const TIER_LABELS: Record<SubscriptionTier, string> = {
-  starter: "Starter (Free)",
-  pro: "Pro",
-  teams: "Teams",
-};
 
 // ─── Current plan badge ───────────────────────────────────────────────────────
 
@@ -233,7 +201,7 @@ function UpgradeCard({
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function BillingSection({ subscription }: BillingSectionProps) {
+export function MySubscriptionSection({ subscription }: MySubscriptionSectionProps) {
   const { session } = useUser();
   const [billingInterval, setBillingInterval] = useState<BillingInterval>(
     subscription?.billing_interval ?? "month"
@@ -333,11 +301,11 @@ export function BillingSection({ subscription }: BillingSectionProps) {
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-primary/10 rounded-lg text-primary">
-          <CreditCard className="h-5 w-5" />
+          <Crown className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Billing & Subscription</h2>
-          <p className="text-sm text-muted-foreground">Manage your plan and payment details.</p>
+          <h2 className="text-xl font-bold tracking-tight">My Subscription</h2>
+          <p className="text-sm text-muted-foreground">Manage your plan and account tier.</p>
         </div>
       </div>
 

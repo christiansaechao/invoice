@@ -123,6 +123,13 @@
     padding: 0;
   }
 
+  /* Reset all sticky/fixed positioning for print */
+  *,
+  *::before,
+  *::after {
+    position: static !important;
+  }
+
   input,
   textarea {
     border: 1px solid #cbd5e1;
@@ -132,13 +139,16 @@
   #print-area,
   #print-area * {
     visibility: visible;
+    position: relative !important; /* Allow absolute children to position correctly */
   }
 
   #print-area {
-    position: absolute;
+    position: absolute !important;
     left: 0;
     top: 0;
     width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   .no-print {

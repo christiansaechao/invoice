@@ -1,9 +1,10 @@
 import { BillTo } from "../BillTo";
 import { FromInfo } from "../FromInfo";
+import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function LuxuryEditorialLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, dueDate, billToOverride, rows, subtotal, total } = data;
+    const { invoiceNumber, date, dueDate, billToOverride, rows, subtotal, total, paymentLink, status, currency } = data;
     const t = TEMPLATE_THEMES.luxury;
 
     return (
@@ -90,6 +91,16 @@ export function LuxuryEditorialLayout({ data }: { data: any }) {
             {/* Bottom emblem */}
             <div className="w-full flex justify-center py-6 pb-2">
                 <div className="h-10 w-10 rounded-full flex items-center justify-center italic font-serif" style={{ backgroundColor: t.border, color: t.secondary }}>A</div>
+            </div>
+
+            <div className="px-10">
+                <PaymentSection 
+                    paymentLink={paymentLink} 
+                    status={status} 
+                    total={total} 
+                    currency={currency} 
+                    templateSlug="luxury" 
+                />
             </div>
         </div>
     );

@@ -1,3 +1,5 @@
+import type { PaymentMethods } from "./invoice.types";
+
 export type InvoiceTemplateSlug =
   | "standard"
   | "minimal"
@@ -40,6 +42,12 @@ export type InvoiceDocumentData = {
   invoiceNumber: string;
   invoiceDate: string;
   dueDate: string;
+  status?: string;
+  paymentLink?: string | null;
+  paymentMethods?: PaymentMethods | null;
+  stripeSessionId?: string | null;
+  paymentStatus?: string;
+
   templateSlug: InvoiceTemplateSlug;
   from: InvoiceDocumentParty;
   billTo: InvoiceDocumentParty;

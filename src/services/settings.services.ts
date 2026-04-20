@@ -18,11 +18,14 @@ export const getUserSettings = async () => {
     }
 }
 
+import type { PaymentMethods } from "@/types/invoice.types";
+
 export const updateUserSettings = async (updates: {
     default_client_id?: string | null;
     default_template_id?: string;
     logo_url?: string | null;
     payment_link?: string | null;
+    payment_methods?: PaymentMethods | null;
 }) => {
     try {
         const { data: { session } } = await supabase.auth.getSession();

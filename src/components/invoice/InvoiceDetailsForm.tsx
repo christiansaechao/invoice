@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useUser } from "@/store/user.store";
 
 import { useTemplates } from "@/api/templates.api";
+import { SUPPORTED_CURRENCIES } from "@/lib/currency";
 
 type InvoiceDetailsFormProps = {
   clients: any[];
@@ -18,6 +19,8 @@ type InvoiceDetailsFormProps = {
   setInvoiceNumber: (num: string) => void;
   templateId: string;
   setTemplateId: (id: string) => void;
+  currency: string;
+  setCurrency: (code: string) => void;
 };
 
 export function InvoiceDetailsForm({
@@ -28,7 +31,9 @@ export function InvoiceDetailsForm({
   invoiceNumber,
   setInvoiceNumber,
   templateId,
-  setTemplateId
+  setTemplateId,
+  currency,
+  setCurrency
 }: InvoiceDetailsFormProps) {
   const { session } = useUser();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -60,7 +65,7 @@ export function InvoiceDetailsForm({
 
   return (
     <div className="min-w-0">
-      <h2 className="text-2xl font-bold tracking-tight mb-4">Invoice Details</h2>
+      <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-6">Logistics</h2>
       <div className="flex flex-col gap-4 min-w-0">
         {/* Client Selector */}
         <div className="flex flex-col gap-2 min-w-0">
@@ -120,23 +125,22 @@ export function InvoiceDetailsForm({
           />
         </div>
 
-        <div className="flex flex-col gap-2 min-w-0 mt-2">
-          <Label htmlFor="template-select">Invoice Template</Label>
+        <div className="flex flex-col gap-2 min-w-0">
+          <Label htmlFor="currency-select">Currency</Label>
           <select
-            id="template-select"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 truncate"
-            value={templateId}
-            onChange={(e) => setTemplateId(e.target.value)}
+            id="currency-select"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
           >
-            <option value="" disabled>Select a template</option>
-            {templates?.map((t: any) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
+            {SUPPORTED_CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.code} ({c.symbol})
               </option>
             ))}
           </select>
-          <p className="text-xs text-muted-foreground mt-1">Changes applied here only override this specific invoice.</p>
         </div>
+
       </div>
     </div>
   );

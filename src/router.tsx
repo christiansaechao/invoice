@@ -14,6 +14,7 @@ import { Clients } from "./pages/Clients";
 import { RequireAuth } from "./components/layouts/RequireAuth";
 import { Settings } from "./pages/Settings";
 import { Templates } from "./pages/Templates";
+import { PaidOutside } from "./pages/PaidOutside";
 
 export const router = createBrowserRouter([
   {
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
             </div>
           </div>
         ),
+      },
+      {
+        path: "feedback/paid-outside",
+        element: <PaidOutside />,
       },
       {
         element: <RequireAuth />,
