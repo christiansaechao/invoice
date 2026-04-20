@@ -127,28 +127,10 @@ export const updateInvoiceEntries = async (invoiceId: string, rows: Row[]) => {
   return { success: true, data };
 };
 
-export const fetchLastInvoiceNumberByClient = async (clientId: string) => {
-  if (!clientId) return null;
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("invoice_number")
-    .eq("client_id", clientId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Failed to fetch last invoice number:", error);
-    return null;
-  }
-
-  return data?.invoice_number || null;
-};
 
 export const saveInvoice = async (
   rows: Row[],
   clientId: string,
-  invoiceNumber: string,
   invoiceDate: string,
   dueDate: string,
   invoiceDetails: {
@@ -165,28 +147,52 @@ export const saveInvoice = async (
     notes?: string;
     terms?: string;
     parent_recurring_id?: string | null;
-    email_status?: string | null;
-    last_email_at?: string | null;
-    payment_link?: string | null;
     template_id?: string | null;
+    doc_type?: "invoice" | "quote";
   },
 ) => {
-  alert("saving invoice");
+  // Resolve the authenticated user for the RPC call
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data: invoice, error: invoiceError } = await supabase
-    .from("invoices")
-    .insert({
-      client_id: clientId || null,
-      invoice_number: invoiceNumber ? parseInt(invoiceNumber, 10) : null,
-      invoice_date: invoiceDate || null,
-      due_date: dueDate || null,
-      ...invoiceDetails,
-    })
-    .select()
-    .single();
+  if (!user) {
+    return {
+      success: false,
+      message: "Not authenticated",
+      invoice: null,
+      entries: null,
+    };
+  }
+
+  // ── 1. Create the invoice via the atomic sequence RPC ──────────────────
+  // The RPC assigns invoice_number atomically and snapshots payment_link.
+  const { data: invoice, error: invoiceError } = await supabase.rpc(
+    "create_invoice_with_atomic_number",
+    {
+      p_user_id:        user.id,
+      p_client_id:      clientId        || null,
+      p_invoice_date:   invoiceDate     || null,
+      p_due_date:       dueDate         || null,
+      p_currency:       invoiceDetails.currency       ?? "USD",
+      p_subtotal:       invoiceDetails.subtotal        ?? 0,
+      p_total_amount:   invoiceDetails.total_amount    ?? 0,
+      p_discount_type:  invoiceDetails.discount_type   ?? null,
+      p_discount_value: invoiceDetails.discount_value  ?? null,
+      p_tax_rate:       invoiceDetails.tax_rate        ?? null,
+      p_tax_amount:     invoiceDetails.tax_amount      ?? null,
+      p_notes:          invoiceDetails.notes           ?? null,
+      p_terms:          invoiceDetails.terms           ?? null,
+      p_template_id:    invoiceDetails.template_id     ?? null,
+      p_doc_type:       invoiceDetails.doc_type        ?? "invoice",
+      p_auto_nudge:     invoiceDetails.auto_nudge      ?? true,
+      p_nudge_profile:  invoiceDetails.nudge_profile,
+      p_work_week_only: invoiceDetails.work_week_only,
+    }
+  );
 
   if (invoiceError) {
-    console.log("invoice error", invoiceError);
+    console.error("invoice rpc error", invoiceError);
     return {
       success: false,
       error: invoiceError,
@@ -196,8 +202,7 @@ export const saveInvoice = async (
     };
   }
 
-  console.log("invoice data", invoice);
-
+  // ── 2. Insert line items against the new invoice ────────────────────────
   const formattedRows = rows.map((row) => ({
     invoice_id: invoice.id,
     service_date: row.service_date,
@@ -228,8 +233,8 @@ export const saveInvoice = async (
     success: true,
     message: "Successfully created new invoice",
     error: null,
-    entries: entries,
-    invoice: invoice,
+    entries,
+    invoice,  // includes server-assigned invoice_number
   };
 };
 

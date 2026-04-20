@@ -16,7 +16,7 @@ type InvoiceDetailsFormProps = {
   setSelectedClientId: (id: string) => void;
   onClientCreated: (client: any) => void;
   invoiceNumber: string;
-  setInvoiceNumber: (num: string) => void;
+  // setInvoiceNumber removed — number is now assigned by the DB RPC
   templateId: string;
   setTemplateId: (id: string) => void;
   currency: string;
@@ -29,7 +29,6 @@ export function InvoiceDetailsForm({
   setSelectedClientId,
   onClientCreated,
   invoiceNumber,
-  setInvoiceNumber,
   templateId,
   setTemplateId,
   currency,
@@ -116,13 +115,21 @@ export function InvoiceDetailsForm({
 
         <div className="flex flex-col gap-2 min-w-0">
           <Label htmlFor="invno">Invoice Number</Label>
-          <Input
-            id="invno"
-            placeholder="1"
-            value={invoiceNumber}
-            onChange={(e) => setInvoiceNumber(e.target.value)}
-            className="truncate"
-          />
+          <div className="relative">
+            <Input
+              id="invno"
+              value={invoiceNumber}
+              readOnly
+              placeholder="Auto-generated on save"
+              className="bg-muted/40 text-muted-foreground cursor-default select-none"
+              tabIndex={-1}
+            />
+            {!invoiceNumber && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 pointer-events-none">
+                Auto
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 min-w-0">

@@ -11,7 +11,9 @@ import {
   FEATURES_PRO,
   PRICES,
   PRICE_IDS_STRIPE as PRICE_IDS,
-  TIER_LABELS
+  TIER_LABELS,
+  MAGIC_CREDIT_LIMITS,
+  getDaysUntilReset
 } from "@/constants/pricing";
 
 interface MySubscriptionSectionProps {
@@ -24,6 +26,9 @@ function CurrentPlanBadge({ subscription }: { subscription?: UserSubscription | 
   const tier = subscription?.tier ?? "starter";
   const isActive = subscription?.status === "active";
   const isCanceling = subscription?.cancel_at_period_end;
+  const credits = subscription?.magic_credits;
+  const tierLimit = MAGIC_CREDIT_LIMITS[tier] ?? MAGIC_CREDIT_LIMITS.starter;
+  const daysUntilReset = getDaysUntilReset(subscription?.credits_last_reset);
 
   return (
     <div className="flex flex-col gap-4 bg-card border border-border rounded-xl p-6 shadow-sm">
@@ -67,10 +72,13 @@ function CurrentPlanBadge({ subscription }: { subscription?: UserSubscription | 
         )}
       </div>
 
-      {typeof subscription?.magic_credits === "number" && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1 border-t border-border">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <span><strong className="text-foreground">{subscription.magic_credits}</strong> Magic AI credits remaining</span>
+      {typeof credits === "number" && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t border-border mt-3">
+          <Sparkles className={cn("h-4 w-4", credits < 5 ? "text-amber-500" : "text-primary")} />
+          <span className={cn(credits < 5 && "text-amber-500 font-medium")}>
+            <strong className="text-foreground">{credits}</strong> / {tierLimit} Magic AI generations remaining
+            <span className="text-xs ml-1 opacity-80">(Resets in {daysUntilReset} days)</span>
+          </span>
         </div>
       )}
     </div>

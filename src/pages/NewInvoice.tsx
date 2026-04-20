@@ -6,10 +6,10 @@ import { InvoiceActionButtons } from "../components/invoice/InvoiceActionButtons
 import {
   saveInvoice,
   fetchClients,
-  fetchLastInvoiceNumberByClient,
 } from "@/services/invoice.services";
 import { toast } from "sonner";
 import { getCurrentSubscription } from "@/services/subscription.services";
+import { MAGIC_CREDIT_LIMITS, getDaysUntilReset, type SubscriptionTier } from "@/constants/pricing";
 import {
   Accordion,
   AccordionItem,
@@ -51,6 +51,8 @@ export function NewInvoice() {
   const [promptText, setPromptText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [credits, setCredits] = useState<number>(0); // NEW: Track credits locally
+  const [tierLimit, setTierLimit] = useState<number>(MAGIC_CREDIT_LIMITS.starter);
+  const [daysUntilReset, setDaysUntilReset] = useState<number>(0);
 
   // NEW: Fetch user's credits on mount
   useEffect(() => {
@@ -61,6 +63,8 @@ export function NewInvoice() {
         const subscription = await getCurrentSubscription();
         if (subscription && typeof subscription.magic_credits === "number") {
           setCredits(subscription.magic_credits || 0);
+          setTierLimit(MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ?? MAGIC_CREDIT_LIMITS.starter);
+          setDaysUntilReset(getDaysUntilReset(subscription.credits_last_reset));
         }
       } catch (e) {
         console.error("Failed to fetch subscription credits:", e);
@@ -98,7 +102,7 @@ export function NewInvoice() {
     )?.slug ?? "standard";
 
   // Synchronize Payment Terms offset into Due Date automatically
-  const { paymentTerms, workspaceMode, nudgeConfig } = useInvoiceWorkspace();
+  const { paymentTerms, workspaceMode, nudgeConfig, documentType } = useInvoiceWorkspace();
 
   useEffect(() => {
     if (workspaceMode === "recurring") {
@@ -157,6 +161,8 @@ export function NewInvoice() {
           const subscription = await getCurrentSubscription();
           if (subscription && typeof subscription.magic_credits === "number") {
             setCredits(subscription.magic_credits || 0);
+            setTierLimit(MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ?? MAGIC_CREDIT_LIMITS.starter);
+            setDaysUntilReset(getDaysUntilReset(subscription.credits_last_reset));
           }
         } catch (e) {
           console.error("Failed to refresh subscription credits:", e);
@@ -187,22 +193,6 @@ export function NewInvoice() {
       });
   }, []);
 
-  // Sync latest client sequence number continuously
-  useEffect(() => {
-    if (!selectedClientId) {
-      setInvoiceNumber("");
-      return;
-    }
-
-    fetchLastInvoiceNumberByClient(selectedClientId).then((lastNum) => {
-      if (lastNum !== null && !isNaN(Number(lastNum))) {
-        setInvoiceNumber(String(Number(lastNum) + 1));
-      } else {
-        // Safe standard fallback entry if it's their first invoice
-        setInvoiceNumber("1");
-      }
-    });
-  }, [selectedClientId]);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const billToOverride = getBillToOverride(selectedClient);
@@ -227,10 +217,9 @@ export function NewInvoice() {
       toast("Please select a client before saving the invoice.");
       return;
     }
-    const { message } = await saveInvoice(
+    const result = await saveInvoice(
       rows,
       selectedClientId,
-      invoiceNumber,
       date,
       dueDate,
       {
@@ -243,9 +232,16 @@ export function NewInvoice() {
         auto_nudge: nudgeConfig.enabled,
         nudge_profile: nudgeConfig.profile,
         work_week_only: nudgeConfig.workWeekOnly,
+        doc_type: documentType,
       },
     );
-    toast(message);
+
+    toast(result.message);
+
+    // Update the preview with the server-assigned invoice number
+    if (result.success && result.invoice?.invoice_number) {
+      setInvoiceNumber(String(result.invoice.invoice_number));
+    }
   };
 
   const printInvoice = () => {
@@ -331,8 +327,7 @@ export function NewInvoice() {
               setSelectedClientId={setSelectedClientId}
               onClientCreated={handleClientCreated}
               invoiceNumber={invoiceNumber}
-              setInvoiceNumber={setInvoiceNumber}
-              templateId={""} // Leftover props to prevent ts complaining before total scrub
+              templateId={""}
               setTemplateId={() => {}}
               currency={currency}
               setCurrency={setCurrency}
@@ -378,9 +373,9 @@ export function NewInvoice() {
                             : "Generate with AI"}
                       </button>
                       <span
-                        className={`text-xs ${credits > 0 ? "text-muted-foreground" : "text-destructive font-medium"}`}
+                        className={`text-xs ${credits < 5 ? "text-amber-500 font-medium" : "text-muted-foreground"}`}
                       >
-                        ⚡️ {credits} magic generations remaining
+                        ⚡️ {credits} / {tierLimit} magic generations remaining (Resets in {daysUntilReset} days)
                       </span>
                     </div>
                   </div>

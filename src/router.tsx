@@ -15,6 +15,7 @@ import { RequireAuth } from "./components/layouts/RequireAuth";
 import { Settings } from "./pages/Settings";
 import { Templates } from "./pages/Templates";
 import { PaidOutside } from "./pages/PaidOutside";
+import { PublicInvoiceView } from "./pages/PublicInvoiceView";
 
 export const router = createBrowserRouter([
   {
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
       {
         path: "feedback/paid-outside",
         element: <PaidOutside />,
+      },
+      {
+        path: "public/invoice/:id",
+        element: <PublicInvoiceView />,
       },
       {
         element: <RequireAuth />,

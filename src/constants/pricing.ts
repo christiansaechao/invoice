@@ -14,7 +14,30 @@ export interface UserSubscription {
   cancel_at_period_end: boolean;
   current_period_end?: string;
   magic_credits?: number;
+  credits_last_reset?: string | null;
   stripe_customer_id?: string | null;
+}
+
+// ─── Constants & Limits ────────────────────────────────────────────────────────
+export const MAGIC_CREDIT_LIMITS: Record<SubscriptionTier, number> = {
+  starter: 3,
+  pro: 50,
+  teams: 200,
+};
+
+export function getDaysUntilReset(creditsLastReset?: string | null): number {
+  if (!creditsLastReset) return 0;
+  try {
+    const lastReset = new Date(creditsLastReset);
+    const now = new Date();
+    // In db cron: "credits_last_reset <= NOW() - INTERVAL '30 days'"
+    // So the reset happens precisely 30 days after last_reset.
+    const resetDate = new Date(lastReset.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const diffDays = Math.ceil((resetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  } catch (e) {
+    return 0;
+  }
 }
 
 // ─── Plans ────────────────────────────────────────────────────────────────────

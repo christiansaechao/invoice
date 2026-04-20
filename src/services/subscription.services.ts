@@ -6,7 +6,7 @@ export const getCurrentSubscription = async () => {
 
   const { data, error } = await supabase
     .from("user_subscriptions")
-    .select("tier, status, billing_interval, cancel_at_period_end, current_period_end, magic_credits, stripe_customer_id")
+    .select("tier, status, billing_interval, cancel_at_period_end, current_period_end, magic_credits, credits_last_reset, stripe_customer_id")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
