@@ -29,9 +29,9 @@ export function InvoiceTable({
   const colSpan = showEdit ? 6 : 5;
 
   return (
-    <div className="bg-white rounded-xl border border-border overflow-hidden shadow-sm">
+    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
       <table className="w-full text-sm">
-        <thead className="border-b border-border bg-accent/40">
+        <thead className="border-b border-border bg-muted/50">
           <tr>
             <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase text-muted-foreground">
               Invoice ID

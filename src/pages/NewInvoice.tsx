@@ -3,13 +3,14 @@ import { InvoiceDetailsForm } from "../components/invoice/InvoiceDetailsForm";
 import { NudgeControls } from "../components/invoice/NudgeControls";
 import { LineItemsForm } from "../components/invoice/LineItemsForm";
 import { InvoiceActionButtons } from "../components/invoice/InvoiceActionButtons";
-import {
-  saveInvoice,
-  fetchClients,
-} from "@/services/invoice.services";
+import { saveInvoice, fetchClients } from "@/services/invoice.services";
 import { toast } from "sonner";
 import { getCurrentSubscription } from "@/services/subscription.services";
-import { MAGIC_CREDIT_LIMITS, getDaysUntilReset, type SubscriptionTier } from "@/constants/pricing";
+import {
+  MAGIC_CREDIT_LIMITS,
+  getDaysUntilReset,
+  type SubscriptionTier,
+} from "@/constants/pricing";
 import {
   Accordion,
   AccordionItem,
@@ -22,6 +23,7 @@ import { toSubUnits, SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { useLineItems } from "@/hooks/useLineItems";
 import { useSettings } from "@/store/settings.store";
 import { useUser } from "@/store/user.store";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { extractInvoiceWithAI } from "@/services/ai.services";
 import { useFetchUserSettings } from "@/api/settings.api";
 import { useTemplates } from "@/api/templates.api";
@@ -33,6 +35,7 @@ import type { InvoiceTemplateSlug } from "@/types/invoice-document.types";
 
 export function NewInvoice() {
   const { session, profile } = useUser();
+  const { canCreateInvoice, activeClientCount, monthlyInvoiceCount, limits } = usePlanLimits();
 
   // Meta State
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -51,7 +54,9 @@ export function NewInvoice() {
   const [promptText, setPromptText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [credits, setCredits] = useState<number>(0); // NEW: Track credits locally
-  const [tierLimit, setTierLimit] = useState<number>(MAGIC_CREDIT_LIMITS.starter);
+  const [tierLimit, setTierLimit] = useState<number>(
+    MAGIC_CREDIT_LIMITS.starter,
+  );
   const [daysUntilReset, setDaysUntilReset] = useState<number>(0);
 
   // NEW: Fetch user's credits on mount
@@ -63,7 +68,10 @@ export function NewInvoice() {
         const subscription = await getCurrentSubscription();
         if (subscription && typeof subscription.magic_credits === "number") {
           setCredits(subscription.magic_credits || 0);
-          setTierLimit(MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ?? MAGIC_CREDIT_LIMITS.starter);
+          setTierLimit(
+            MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ??
+              MAGIC_CREDIT_LIMITS.starter,
+          );
           setDaysUntilReset(getDaysUntilReset(subscription.credits_last_reset));
         }
       } catch (e) {
@@ -102,7 +110,8 @@ export function NewInvoice() {
     )?.slug ?? "standard";
 
   // Synchronize Payment Terms offset into Due Date automatically
-  const { paymentTerms, workspaceMode, nudgeConfig, documentType } = useInvoiceWorkspace();
+  const { paymentTerms, workspaceMode, nudgeConfig, documentType } =
+    useInvoiceWorkspace();
 
   useEffect(() => {
     if (workspaceMode === "recurring") {
@@ -161,8 +170,13 @@ export function NewInvoice() {
           const subscription = await getCurrentSubscription();
           if (subscription && typeof subscription.magic_credits === "number") {
             setCredits(subscription.magic_credits || 0);
-            setTierLimit(MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ?? MAGIC_CREDIT_LIMITS.starter);
-            setDaysUntilReset(getDaysUntilReset(subscription.credits_last_reset));
+            setTierLimit(
+              MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ??
+                MAGIC_CREDIT_LIMITS.starter,
+            );
+            setDaysUntilReset(
+              getDaysUntilReset(subscription.credits_last_reset),
+            );
           }
         } catch (e) {
           console.error("Failed to refresh subscription credits:", e);
@@ -193,7 +207,6 @@ export function NewInvoice() {
       });
   }, []);
 
-
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const billToOverride = getBillToOverride(selectedClient);
 
@@ -217,24 +230,18 @@ export function NewInvoice() {
       toast("Please select a client before saving the invoice.");
       return;
     }
-    const result = await saveInvoice(
-      rows,
-      selectedClientId,
-      date,
-      dueDate,
-      {
-        subtotal: toSubUnits(subtotal),
-        total_amount: toSubUnits(total),
-        currency: currency,
-        discount_value: 0,
-        tax_amount: 0,
-        template_id: templateId,
-        auto_nudge: nudgeConfig.enabled,
-        nudge_profile: nudgeConfig.profile,
-        work_week_only: nudgeConfig.workWeekOnly,
-        doc_type: documentType,
-      },
-    );
+    const result = await saveInvoice(rows, selectedClientId, date, dueDate, {
+      subtotal: toSubUnits(subtotal),
+      total_amount: toSubUnits(total),
+      currency: currency,
+      discount_value: 0,
+      tax_amount: 0,
+      template_id: templateId,
+      auto_nudge: nudgeConfig.enabled,
+      nudge_profile: nudgeConfig.profile,
+      work_week_only: nudgeConfig.workWeekOnly,
+      doc_type: documentType,
+    });
 
     toast(result.message);
 
@@ -282,10 +289,17 @@ export function NewInvoice() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Global Fixed Action Bar — Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border px-4 md:px-8 py-3 flex justify-end gap-3 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] no-print">
+      <div className="fixed bottom-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border px-4 md:px-8 py-3 flex justify-end items-center gap-6 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] no-print transition-all duration-400 left-[var(--sidebar-width,0px)]">
+        {!canCreateInvoice && (
+          <div className="text-right">
+            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Monthly Limit Reached</p>
+            <p className="text-xs text-muted-foreground">{monthlyInvoiceCount} / {limits.monthlyInvoices} invoices created this month</p>
+          </div>
+        )}
         <InvoiceActionButtons
           saveNewInvoice={saveNewInvoice}
           printInvoice={printInvoice}
+          disabled={!canCreateInvoice}
         />
       </div>
 
@@ -358,7 +372,13 @@ export function NewInvoice() {
                       onChange={(e) => setPromptText(e.target.value)}
                       disabled={isExtracting || credits <= 0}
                     />
-                    <div className="flex justify-between items-center mt-2">
+                    <div className="flex justify-between flex-col items-center gap-4">
+                      <span
+                        className={`text-xs ${credits < 5 ? "text-amber-500 font-medium" : "text-muted-foreground"}`}
+                      >
+                        ⚡️ {credits} / {tierLimit} magic generations remaining
+                        (Resets in {daysUntilReset} days)
+                      </span>
                       <button
                         onClick={handleAIExtraction}
                         disabled={
@@ -372,11 +392,6 @@ export function NewInvoice() {
                             ? "Out of Credits"
                             : "Generate with AI"}
                       </button>
-                      <span
-                        className={`text-xs ${credits < 5 ? "text-amber-500 font-medium" : "text-muted-foreground"}`}
-                      >
-                        ⚡️ {credits} / {tierLimit} magic generations remaining (Resets in {daysUntilReset} days)
-                      </span>
                     </div>
                   </div>
                 </AccordionContent>

@@ -9,6 +9,9 @@ export type Client = {
   city?: string;
   state?: string;
   zip_code?: string;
+  industry?: string | null;
+  notes?: string[];
+  is_archived: boolean;
   created_at: string;
   updated_at: string;
 };

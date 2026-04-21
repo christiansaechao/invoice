@@ -66,23 +66,23 @@ export function MetaInfo({
           INVOICE
         </div>
         <div className="flex justify-end items-center gap-3 my-1.5 text-sm">
-          <label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Invoice #</label>
+          <label className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Invoice #</label>
           <div className="font-serif font-bold text-primary text-lg">{invoiceNumber}</div>
         </div>
         
         {workspaceMode === "one-time" ? (
            <>
-              <div className="flex justify-end items-center gap-3 my-1.5 text-sm">
-                <label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Invoice Date</label>
-                <div className="font-medium capitalize">{date}</div>
-              </div>
-              <div className="flex justify-end items-center gap-3 my-1.5 text-sm">
-                <label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Due Date</label>
-                <div className="font-medium capitalize">{dueDate}</div>
-              </div>
+               <div className="flex justify-end items-center gap-3 my-1.5 text-sm">
+                 <label className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Invoice Date</label>
+                 <div className="font-medium capitalize text-slate-900">{date}</div>
+               </div>
+               <div className="flex justify-end items-center gap-3 my-1.5 text-sm">
+                 <label className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Due Date</label>
+                 <div className="font-medium capitalize text-slate-900">{dueDate}</div>
+               </div>
            </>
-        ) : (
-           <div className="flex justify-end items-start gap-3 mt-3 text-sm border-t border-border/40 pt-3 max-w-[280px] ml-auto">
+         ) : (
+            <div className="flex justify-end items-start gap-3 mt-3 text-sm border-t border-slate-200 pt-3 max-w-[280px] ml-auto">
               <span className="font-medium text-slate-700 bg-secondary/50 py-1.5 px-3 rounded-lg text-right shadow-sm border border-secondary">
                  {recurringStr}
               </span>

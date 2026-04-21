@@ -22,17 +22,22 @@ export function LineItemsForm({
   setHourlyRate,
   updateRow,
   removeRow,
-  addRow
+  addRow,
 }: LineItemsFormProps) {
-  const { discountMode, setDiscountMode, discountValue, setDiscountValue } = useInvoiceWorkspace();
+  const { discountMode, setDiscountMode, discountValue, setDiscountValue } =
+    useInvoiceWorkspace();
   const [showDiscount, setShowDiscount] = useState(discountValue > 0);
 
   return (
-    <div>
+    <div className="bg-card">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Line Items</h2>
+        <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          Line Items
+        </h2>
         <div className="flex items-center gap-2">
-          <Label htmlFor="hourlyRate" className="whitespace-nowrap">Rate ($)</Label>
+          <Label htmlFor="hourlyRate" className="whitespace-nowrap">
+            Rate ($)
+          </Label>
           <Input
             id="hourlyRate"
             type="number"
@@ -59,7 +64,10 @@ export function LineItemsForm({
 
       <div className="flex flex-col gap-4">
         {rows.map((row, i) => (
-          <div key={i} className="flex flex-col gap-3 p-4 border border-border rounded-lg bg-background/50 relative group">
+          <div
+            key={i}
+            className="flex flex-col gap-3 p-4 border border-border rounded-lg bg-background/50 relative group"
+          >
             {rows.length > 1 && (
               <Button
                 variant="ghost"
@@ -92,7 +100,7 @@ export function LineItemsForm({
                   className="w-full"
                 />
               </div>
-              
+
               <div className="flex flex-col gap-2 w-full sm:col-span-4">
                 <Label className="text-xs">Qty</Label>
                 <Input
@@ -132,21 +140,31 @@ export function LineItemsForm({
             </div>
 
             <div className="flex items-center gap-3">
-               <Label className="text-xs text-muted-foreground">Category</Label>
-               <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
-                  <button
-                     className={cn("px-4 py-1.5 text-xs rounded-md font-semibold transition-all hover:bg-slate-200", row.category === "Labor" ? "bg-white text-primary shadow-sm hover:bg-white" : "text-muted-foreground")}
-                     onClick={() => updateRow(i, "category", "Labor")}
-                  >
-                     Labor
-                  </button>
-                  <button
-                     className={cn("px-4 py-1.5 text-xs rounded-md font-semibold transition-all hover:bg-slate-200", row.category === "Materials" ? "bg-white text-primary shadow-sm hover:bg-white" : "text-muted-foreground")}
-                     onClick={() => updateRow(i, "category", "Materials")}
-                  >
-                     Materials
-                  </button>
-               </div>
+              <Label className="text-xs text-muted-foreground">Category</Label>
+              <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+                <button
+                  className={cn(
+                    "px-4 py-1.5 text-xs rounded-md font-semibold transition-all hover:bg-muted/80",
+                    row.category === "Labor"
+                      ? "bg-card text-primary shadow-sm hover:bg-card"
+                      : "text-muted-foreground",
+                  )}
+                  onClick={() => updateRow(i, "category", "Labor")}
+                >
+                  Labor
+                </button>
+                <button
+                  className={cn(
+                    "px-4 py-1.5 text-xs rounded-md font-semibold transition-all hover:bg-muted/80",
+                    row.category === "Materials"
+                      ? "bg-card text-primary shadow-sm hover:bg-card"
+                      : "text-muted-foreground",
+                  )}
+                  onClick={() => updateRow(i, "category", "Materials")}
+                >
+                  Materials
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -163,68 +181,96 @@ export function LineItemsForm({
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-3 mt-4">
-        <Button variant="outline" className="w-full sm:w-auto gap-2" onClick={addRow}>
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto gap-2"
+          onClick={addRow}
+        >
           <Plus className="h-4 w-4" /> Add Row
         </Button>
       </div>
 
       <div className="mt-8 pt-6 border-t border-border flex flex-col gap-4">
-         <div className="flex items-center justify-between bg-slate-50/50 p-3 border border-border/40 rounded-xl">
-            <h3 className="text-sm font-semibold text-foreground ml-1">Advanced Discount</h3>
-            <div className="flex bg-slate-200/60 p-1 rounded-lg w-[180px]">
-               <button 
-                  onClick={() => {
-                     setShowDiscount(false);
-                     setDiscountValue(0);
-                  }}
-                  className={cn("flex-1 py-1.5 text-xs font-semibold rounded-md transition-all", !showDiscount ? "bg-white shadow-sm text-foreground" : "text-muted-foreground")}
-               >
-                   Off
-               </button>
-               <button 
-                  onClick={() => setShowDiscount(true)}
-                  className={cn("flex-1 py-1.5 text-xs font-semibold rounded-md transition-all", showDiscount ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}
-               >
-                   Active
-               </button>
-            </div>
-         </div>
+        <div className="flex items-center justify-between bg-muted/20 p-3 border border-border/40 rounded-xl">
+          <h3 className="text-sm font-semibold text-foreground ml-1">
+            Advanced Discount
+          </h3>
+          <div className="flex bg-muted/40 p-1 rounded-lg w-[180px]">
+            <button
+              onClick={() => {
+                setShowDiscount(false);
+                setDiscountValue(0);
+              }}
+              className={cn(
+                "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
+                !showDiscount
+                  ? "bg-card shadow-sm text-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
+              Off
+            </button>
+            <button
+              onClick={() => setShowDiscount(true)}
+              className={cn(
+                "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
+                showDiscount
+                  ? "bg-card shadow-sm text-primary"
+                  : "text-muted-foreground",
+              )}
+            >
+              Active
+            </button>
+          </div>
+        </div>
 
-         {showDiscount && (
-           <div className="mt-4 flex flex-col gap-4 bg-slate-50/50 p-4 rounded-xl animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center gap-4">
-                  <div className="flex bg-slate-200/60 p-1 rounded-lg w-[200px]">
-                     <button 
-                        onClick={() => setDiscountMode('flat')}
-                        className={cn("flex-1 py-1.5 text-xs font-semibold rounded-md transition-all", discountMode === 'flat' ? "bg-white shadow-sm text-foreground" : "text-muted-foreground")}
-                     >
-                         Flat Amount ($)
-                     </button>
-                     <button 
-                        onClick={() => setDiscountMode('percent')}
-                        className={cn("flex-1 py-1.5 text-xs font-semibold rounded-md transition-all", discountMode === 'percent' ? "bg-white shadow-sm text-foreground" : "text-muted-foreground")}
-                     >
-                         Percentage (%)
-                     </button>
-                  </div>
-                  
-                  <div className="relative">
-                      <Input 
-                         type="number"
-                         min="0"
-                         step={discountMode === 'percent' ? "1" : "0.01"}
-                         value={discountValue || ""}
-                         onChange={e => setDiscountValue(parseFloat(e.target.value) || 0)}
-                         className="w-32 pr-8"
-                         placeholder="0"
-                      />
-                      <span className="absolute right-3 top-2 text-sm text-muted-foreground font-medium">
-                         {discountMode === 'percent' ? "%" : "$"}
-                      </span>
-                  </div>
+        {showDiscount && (
+          <div className="mt-4 flex flex-col gap-4 bg-muted/20 p-4 rounded-xl animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-4">
+              <div className="flex bg-muted/40 p-1 rounded-lg w-[200px]">
+                <button
+                  onClick={() => setDiscountMode("flat")}
+                  className={cn(
+                    "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
+                    discountMode === "flat"
+                      ? "bg-card shadow-sm text-foreground"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  Flat Amount ($)
+                </button>
+                <button
+                  onClick={() => setDiscountMode("percent")}
+                  className={cn(
+                    "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
+                    discountMode === "percent"
+                      ? "bg-card shadow-sm text-foreground"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  Percentage (%)
+                </button>
               </div>
-           </div>
-         )}
+
+              <div className="relative">
+                <Input
+                  type="number"
+                  min="0"
+                  step={discountMode === "percent" ? "1" : "0.01"}
+                  value={discountValue || ""}
+                  onChange={(e) =>
+                    setDiscountValue(parseFloat(e.target.value) || 0)
+                  }
+                  className="w-32 pr-8"
+                  placeholder="0"
+                />
+                <span className="absolute right-3 top-2 text-sm text-muted-foreground font-medium">
+                  {discountMode === "percent" ? "%" : "$"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

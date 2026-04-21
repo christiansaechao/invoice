@@ -32,7 +32,10 @@ export function DashboardLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div 
+      className="flex min-h-screen bg-background"
+      style={{ "--sidebar-width": isCollapsed ? "80px" : "256px" } as React.CSSProperties}
+    >
       {/* Sidebar */}
       <aside
         className={`border-r border-border p-4 flex flex-col gap-4 duration-400 transition-all ${isCollapsed ? "w-20" : "w-64"

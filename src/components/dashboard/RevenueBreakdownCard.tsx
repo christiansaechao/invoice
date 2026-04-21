@@ -1,4 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 interface BreakdownItem {
   label: string;
@@ -13,6 +14,8 @@ interface RevenueBreakdownCardProps {
 }
 
 export function RevenueBreakdownCard({ breakdown, clientCount }: RevenueBreakdownCardProps) {
+  const { tier, activeClientCount, limits } = usePlanLimits();
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -41,9 +44,19 @@ export function RevenueBreakdownCard({ breakdown, clientCount }: RevenueBreakdow
           </div>
         ))}
 
-        <div className="pt-2 border-t border-border flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Total Clients</span>
-          <span className="font-bold text-foreground">{clientCount}</span>
+        <div className="pt-2 border-t border-border flex flex-col gap-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Total Brands</span>
+            <span className="font-bold text-foreground">{clientCount}</span>
+          </div>
+          {tier === "starter" && (
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-muted-foreground uppercase tracking-widest font-bold">Active Slots</span>
+              <span className={`font-bold ${activeClientCount >= limits.activeClients ? 'text-amber-500' : 'text-primary'}`}>
+                {activeClientCount} / {limits.activeClients}
+              </span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

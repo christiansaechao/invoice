@@ -126,13 +126,13 @@ export function InvoiceRichListRow({
             #{inv.invoice_number}
           </p>
           {inv.doc_type === "quote" && (
-            <span className="bg-amber-100/80 text-amber-800 text-[9px] px-1 rounded font-bold uppercase tracking-wider border border-amber-200">Quote</span>
+            <span className="bg-amber-500/10 text-amber-500 text-[9px] px-1 rounded font-bold uppercase tracking-wider border border-amber-500/20">Quote</span>
           )}
         </div>
         <div className="flex items-center gap-1.5 h-4">
           {inv.link_clicked_at ? (
             <div 
-              className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded border border-emerald-100 cursor-help"
+              className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1 rounded border border-emerald-500/20 cursor-help"
               title={`Clicked: ${new Date(inv.link_clicked_at).toLocaleString()}`}
             >
               <MousePointer2 className="w-2.5 h-2.5" />
@@ -140,7 +140,7 @@ export function InvoiceRichListRow({
             </div>
           ) : inv.email_opened_at ? (
             <div 
-              className="flex items-center gap-1 text-[9px] font-bold text-blue-600 bg-blue-50 px-1 rounded border border-blue-100 cursor-help"
+              className="flex items-center gap-1 text-[9px] font-bold text-blue-500 bg-blue-500/10 px-1 rounded border border-blue-500/20 cursor-help"
               title={`Opened: ${new Date(inv.email_opened_at).toLocaleString()}`}
             >
               <Eye className="w-2.5 h-2.5" />
@@ -198,7 +198,7 @@ export function InvoiceRichListRow({
               <button 
                 onClick={(e) => { e.stopPropagation(); convertQuote(inv.id); }}
                 disabled={isConverting}
-                className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 hover:bg-amber-100 transition-colors uppercase tracking-widest disabled:opacity-50"
+                className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 hover:bg-amber-500/20 transition-colors uppercase tracking-widest disabled:opacity-50"
                 title="Convert this quote to a payable invoice"
               >
                 {isConverting ? "CONVERTING..." : "CONVERT"}

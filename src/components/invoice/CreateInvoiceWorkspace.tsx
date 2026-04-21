@@ -23,17 +23,17 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
 
   return (
     <div className="w-full flex flex-col gap-6 no-print">
-      <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+      <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
         Workspace
       </h2>
       <div className="flex gap-4">
-        <div className="flex bg-slate-100 p-1 rounded-lg w-[180px]">
+        <div className="flex bg-muted p-1 rounded-lg w-[180px]">
           <button
             onClick={() => setDocumentType("invoice")}
             className={cn(
               "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
               documentType === "invoice"
-                ? "bg-white shadow-sm text-primary"
+                ? "bg-card shadow-sm text-primary"
                 : "text-muted-foreground",
             )}
           >
@@ -44,20 +44,20 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
             className={cn(
               "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
               documentType === "quote"
-                ? "bg-white shadow-sm text-primary"
+                ? "bg-card shadow-sm text-primary"
                 : "text-muted-foreground",
             )}
           >
             Quote
           </button>
         </div>
-        <div className="flex bg-slate-100 p-1 rounded-lg w-[180px]">
+        <div className="flex bg-muted p-1 rounded-lg w-[180px]">
           <button
             onClick={() => setWorkspaceMode("one-time")}
             className={cn(
               "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
               workspaceMode === "one-time"
-                ? "bg-white shadow-sm text-primary"
+                ? "bg-card shadow-sm text-primary"
                 : "text-muted-foreground",
             )}
           >
@@ -68,7 +68,7 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
             className={cn(
               "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
               workspaceMode === "recurring"
-                ? "bg-white shadow-sm text-primary"
+                ? "bg-card shadow-sm text-primary"
                 : "text-muted-foreground",
             )}
           >
@@ -152,7 +152,7 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
             </div>
           </div>
 
-          <div className="flex gap-4 items-center bg-secondary/10 border border-secondary/20 p-3 rounded-lg mt-2">
+          <div className="flex gap-4 items-center bg-muted/40 border border-border p-3 rounded-lg mt-2">
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"

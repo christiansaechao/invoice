@@ -9,6 +9,7 @@ import { useUser } from "@/store/user.store";
 
 import { useTemplates } from "@/api/templates.api";
 import { SUPPORTED_CURRENCIES } from "@/lib/currency";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 type InvoiceDetailsFormProps = {
   clients: any[];
@@ -21,6 +22,8 @@ type InvoiceDetailsFormProps = {
   setTemplateId: (id: string) => void;
   currency: string;
   setCurrency: (code: string) => void;
+  dueDate: string;
+  setDueDate: (date: string) => void;
 };
 
 export function InvoiceDetailsForm({
@@ -32,7 +35,9 @@ export function InvoiceDetailsForm({
   templateId,
   setTemplateId,
   currency,
-  setCurrency
+  setCurrency,
+  dueDate,
+  setDueDate
 }: InvoiceDetailsFormProps) {
   const { session } = useUser();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -40,6 +45,7 @@ export function InvoiceDetailsForm({
   const [qaEmail, setQaEmail] = useState("");
   const createClientMutation = useCreateClient();
   const { data: templates } = useTemplates();
+  const { canAddClient, activeClientCount, limits } = usePlanLimits();
 
   const handleQuickAdd = async () => {
     if (!qaName.trim()) {
@@ -64,7 +70,7 @@ export function InvoiceDetailsForm({
 
   return (
     <div className="min-w-0">
-      <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-6">Logistics</h2>
+      <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6">Logistics</h2>
       <div className="flex flex-col gap-4 min-w-0">
         {/* Client Selector */}
         <div className="flex flex-col gap-2 min-w-0">
@@ -74,6 +80,7 @@ export function InvoiceDetailsForm({
               type="button"
               variant="ghost"
               size="sm"
+              disabled={!canAddClient && !showQuickAdd}
               className="h-6 px-2 text-xs text-primary"
               onClick={() => setShowQuickAdd(!showQuickAdd)}
             >
@@ -81,6 +88,12 @@ export function InvoiceDetailsForm({
               {showQuickAdd ? "Cancel" : "Quick Add"}
             </Button>
           </div>
+          
+          {!canAddClient && !showQuickAdd && (
+            <p className="text-[9px] text-amber-500 font-bold uppercase tracking-tight">
+              Limit reached: {activeClientCount}/{limits.activeClients} active slots used. Archive a client to free up space.
+            </p>
+          )}
           
           {showQuickAdd ? (
              <div className="flex flex-col gap-3 p-4 bg-primary/[0.03] border border-primary/20 rounded-md animate-in slide-in-from-top-2 fade-in">
@@ -146,6 +159,17 @@ export function InvoiceDetailsForm({
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="flex flex-col gap-2 min-w-0">
+          <Label htmlFor="due-date">Due Date</Label>
+          <Input
+            id="due-date"
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
         </div>
 
       </div>

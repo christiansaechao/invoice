@@ -58,7 +58,7 @@ export function NudgeControls({ amount, invoiceNumber }: NudgeControlsProps) {
   return (
     <div className="w-full flex flex-col gap-5 no-print">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+        <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Smart Reminders
         </h2>
         <Switch
@@ -91,7 +91,7 @@ export function NudgeControls({ amount, invoiceNumber }: NudgeControlsProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
+          <div className="flex items-center justify-between bg-muted p-3 rounded-lg border border-border">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-slate-400" />
               <Label
@@ -108,7 +108,7 @@ export function NudgeControls({ amount, invoiceNumber }: NudgeControlsProps) {
             />
           </div>
 
-          <div className="mt-2 text-[11px] text-muted-foreground leading-relaxed bg-blue-50/50 p-2.5 rounded-md border border-blue-100/50">
+          <div className="mt-2 text-[11px] text-muted-foreground leading-relaxed bg-primary/10 p-2.5 rounded-md border border-primary/20">
             ✨ Reminders will be sent <strong>3 days before</strong>,{" "}
             <strong>on the day</strong>, and <strong>3 & 7 days after</strong>{" "}
             the due date.
@@ -127,8 +127,8 @@ export function NudgeControls({ amount, invoiceNumber }: NudgeControlsProps) {
           </button>
 
           {isPreviewExpanded && (
-            <div className="border border-border rounded-xl overflow-hidden shadow-inner bg-slate-100 p-4 animate-in zoom-in-95 duration-200">
-              <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden min-h-[300px] flex items-center justify-center relative">
+            <div className="border border-border rounded-xl overflow-hidden shadow-inner bg-muted p-4 animate-in zoom-in-95 duration-200">
+              <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden min-h-[300px] flex items-center justify-center relative">
                 {isLoadingPreview ? (
                   <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
                 ) : previewHtml ? (

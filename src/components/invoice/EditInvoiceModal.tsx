@@ -1,10 +1,19 @@
 import { useState, useMemo, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { InvoiceDetailsForm } from "./InvoiceDetailsForm";
 import { LineItemsForm } from "./LineItemsForm";
 import { Button } from "@/components/ui/button";
 import { Save, Loader2, Printer } from "lucide-react";
-import { fetchClients, fetchEntriesByInvoiceId, updateFullInvoice } from "@/services/invoice.services";
+import {
+  fetchClients,
+  fetchEntriesByInvoiceId,
+  updateFullInvoice,
+} from "@/services/invoice.services";
 import { toast } from "sonner";
 import { calculateTotals, getBillToOverride } from "@/utils/invoice.utils";
 import { useLineItems } from "@/hooks/useLineItems";
@@ -12,12 +21,13 @@ import type { InvoicesWithTotals } from "@/types/invoice.types";
 import { TemplateRenderer } from "./TemplateRenderer";
 import { useUser } from "@/store/user.store";
 import { buildInvoiceDocumentData } from "@/utils/invoice-document.utils";
+import { useTemplates } from "@/api/templates.api";
 
 export function EditInvoiceModal({
   isOpen,
   onClose,
   invoice,
-  onSaveSuccess
+  onSaveSuccess,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -31,10 +41,12 @@ export function EditInvoiceModal({
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState("");
   const [dueDate, setDueDate] = useState("");
-
+  const [templateId, setTemplateId] = useState("standard");
+  const [currency, setCurrency] = useState("USD");
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const { profile } = useUser();
+  const { data: templates } = useTemplates();
 
   const {
     rows,
@@ -44,7 +56,6 @@ export function EditInvoiceModal({
     updateRow,
     addRow,
     removeRow,
-    autoCalc
   } = useLineItems([]);
 
   // Initialization Hydrating Hooks
@@ -59,10 +70,14 @@ export function EditInvoiceModal({
       setInvoiceNumber(String(invoice.invoice_number || ""));
       setSelectedClientId(invoice.client_id || "");
       // Re-hydrate the date using the identical date-stripper used in components/services explicitly matching `<input type="date">`
-      setDate(invoice.created_at ? invoice.created_at.split('T')[0] : "");
-
+      // Prefer invoice_date, fall back to created_at if null
+      const rawDate = invoice.invoice_date || invoice.created_at;
+      setDate(rawDate ? rawDate.split("T")[0] : "");
+      setDueDate(invoice.due_date || "");
+      setCurrency(invoice.currency || "USD");
+      setTemplateId(invoice.template_id || "standard");
       setIsFetching(true);
-      fetchEntriesByInvoiceId(invoice.id).then(fetchedEntries => {
+      fetchEntriesByInvoiceId(invoice.id).then((fetchedEntries) => {
         setRows(fetchedEntries.length > 0 ? fetchedEntries : []);
         setIsFetching(false);
       });
@@ -72,6 +87,9 @@ export function EditInvoiceModal({
       setSelectedClientId("");
       setDate("");
       setRows([]);
+      setCurrency("USD");
+      setTemplateId("standard");
+      setDueDate("");
     }
   }, [isOpen, invoice, setRows]);
 
@@ -90,76 +108,116 @@ export function EditInvoiceModal({
     }
 
     setIsDeploying(true);
-    // Force auto calculations explicitly prior to database push to prevent stale totals
-    autoCalc();
 
-    setTimeout(async () => {
-      const res = await updateFullInvoice(
-        invoice.id,
-        selectedClientId,
-        invoiceNumber,
-        rows,
-        date,
-        dueDate,
-        {
-          subtotal: subtotal,
-          total_amount: total,
-          currency: "USD"
-        }
-      );
-      setIsDeploying(false);
+    const res = await updateFullInvoice(
+      invoice.id,
+      selectedClientId,
+      invoiceNumber,
+      rows,
+      date,
+      dueDate,
+      {
+        subtotal: subtotal,
+        total_amount: total,
+        currency,
+        template_id: templateId,
+      },
+    );
+    setIsDeploying(false);
 
-      if (res.success) {
-        toast.success("Successfully updated invoice.");
-        onSaveSuccess();
-        onClose();
-      } else {
-        toast.error(res.error || "Failed to update record.");
-      }
-    }, 50);
+    if (res.success) {
+      toast.success("Successfully updated invoice.");
+      onSaveSuccess();
+      onClose();
+    } else {
+      toast.error(res.error || "Failed to update record.");
+    }
   };
 
   const printInvoice = () => {
-    autoCalc();
-    setTimeout(() => { window.print(); }, 150);
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   const { subtotal, total } = useMemo(() => calculateTotals(rows), [rows]);
-  const previewDocument = useMemo(() => (
-    buildInvoiceDocumentData({
-      invoiceId: invoice?.id ?? "edit-preview",
+
+  // Resolve template UUID to slug for renderer
+  const templateSlug = useMemo(() => {
+    if (!templates || !templateId) return "standard";
+    const t = templates.find((t: any) => t.id === templateId);
+    return t?.slug || "standard";
+  }, [templates, templateId]);
+
+  const previewDocument = useMemo(
+    () =>
+      buildInvoiceDocumentData({
+        invoiceId: invoice?.id ?? "edit-preview",
+        invoiceNumber,
+        invoiceDate: date,
+        dueDate,
+        templateSlug,
+        rows,
+        subtotal,
+        total,
+        fromProfile: profile,
+        billTo: billToOverride,
+      }),
+    [
+      invoice?.id,
       invoiceNumber,
-      invoiceDate: date,
+      date,
       dueDate,
-      templateSlug: "standard",
+      templateSlug,
       rows,
       subtotal,
       total,
-      fromProfile: profile,
-      billTo: billToOverride,
-    })
-  ), [invoice?.id, invoiceNumber, date, dueDate, rows, subtotal, total, profile, billToOverride]);
+      profile,
+      billToOverride,
+    ],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      {/* Visual map rendering the screen at a solid 1200px max spread. bg-slate block mapping the preview split. pb ensures internal scroll handles correctly */}
-      <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-y-auto bg-slate-50/50 flex flex-col xl:flex-row shadow-2xl">
+      <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-y-auto bg-background/95 backdrop-blur-md flex flex-col xl:flex-row shadow-2xl border-border/40">
         {/* Hidden screen readers elements preventing standard shadcn accessibility warning bounds */}
         <DialogTitle className="sr-only">Edit Invoice</DialogTitle>
-        <DialogDescription className="sr-only">Editor module for updating an invoice record.</DialogDescription>
+        <DialogDescription className="sr-only">
+          Editor module for updating an invoice record.
+        </DialogDescription>
 
         {/* Left Side: Real Forms */}
-        <div className="w-full xl:w-[480px] bg-white border-r border-border flex flex-col h-full flex-shrink-0 relative">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-slate-50/50 sticky top-0 z-10">
+        <div className="w-full xl:w-[480px] bg-card border-r border-border flex flex-col h-full flex-shrink-0 relative">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30 sticky top-0 z-10 backdrop-blur-sm">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-foreground">Editing Invoice <span className="text-muted-foreground font-mono font-medium">#{invoice?.invoice_number}</span></h2>
+              <h2 className="text-lg font-semibold tracking-tight text-foreground">
+                Editing Invoice{" "}
+                <span className="text-muted-foreground font-mono font-medium">
+                  #{invoice?.invoice_number}
+                </span>
+              </h2>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={printInvoice} title="Print Invoice / Save PDF" className="h-8 w-8">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={printInvoice}
+                title="Print Invoice / Save PDF"
+                className="h-8 w-8"
+              >
                 <Printer className="w-4 h-4" />
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={isDeploying || isFetching || !invoice} className="h-8">
-                {isDeploying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={isDeploying || isFetching || !invoice}
+                className="h-8"
+              >
+                {isDeploying ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
                 Save
               </Button>
             </div>
@@ -178,9 +236,10 @@ export function EditInvoiceModal({
                   setSelectedClientId={setSelectedClientId}
                   onClientCreated={handleClientCreated}
                   invoiceNumber={invoiceNumber}
-                  setInvoiceNumber={setInvoiceNumber}
-                  date={date}
-                  setDate={setDate}
+                  templateId={templateId}
+                  setTemplateId={setTemplateId}
+                  currency={currency}
+                  setCurrency={setCurrency}
                   dueDate={dueDate}
                   setDueDate={setDueDate}
                 />
@@ -191,7 +250,6 @@ export function EditInvoiceModal({
                   updateRow={updateRow}
                   removeRow={removeRow}
                   addRow={addRow}
-                  autoCalc={autoCalc}
                 />
               </>
             )}
@@ -200,7 +258,10 @@ export function EditInvoiceModal({
 
         {/* Right Side: Print Document Display */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center items-start">
-          <div id="print-area" className="bg-white min-w-full lg:min-w-[700px] max-w-[850px] shadow-lg border border-border rounded-xl overflow-hidden pointer-events-none scale-100 lg:scale-[0.85] origin-top">
+          <div
+            id="print-area"
+            className="light bg-white min-w-full lg:min-w-[700px] max-w-[850px] shadow-lg border border-border rounded-xl overflow-hidden pointer-events-none scale-100 lg:scale-[0.85] origin-top"
+          >
             <TemplateRenderer document={previewDocument} />
           </div>
         </div>

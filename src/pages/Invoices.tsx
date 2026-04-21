@@ -88,7 +88,7 @@ export default function Invoices() {
         </div>
 
         {/* Filter Bar Component */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 bg-white p-4 rounded-xl border border-border shadow-sm items-end">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 bg-card p-4 rounded-xl border border-border shadow-sm items-end">
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Invoice ID</label>
             <Input placeholder="Search ID..." value={filterId} onChange={(e) => setFilterId(e.target.value)} />

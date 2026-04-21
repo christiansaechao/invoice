@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getDefaultClient, setDefaultClient } from "@/services/client.services";
+import { getDefaultClient, setDefaultClient, updateClient, archiveClient } from "@/services/client.services";
 import { fetchClients, createClient } from "@/services/invoice.services";
 
 export const useFetchDefaultClient = () => {
@@ -38,3 +38,37 @@ export const useCreateClient = () => {
         },
     });
 }
+export const useUpdateClient = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ clientId, clientData }: { clientId: string, clientData: any }) => {
+            const res = await updateClient(clientId, clientData);
+            if (!res.success) {
+                throw new Error(res.error || "Failed to update client");
+            }
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["clients"] });
+            queryClient.invalidateQueries({ queryKey: ["default-client"] });
+        },
+    });
+}
+
+export const useArchiveClient = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ clientId, isArchived }: { clientId: string, isArchived: boolean }) => {
+            const res = await archiveClient(clientId, isArchived);
+            if (!res.success) {
+                throw new Error(res.error || "Failed to archive client");
+            }
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["clients"] });
+            queryClient.invalidateQueries({ queryKey: ["default-client"] });
+        },
+    });
+}
+

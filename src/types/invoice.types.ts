@@ -87,4 +87,8 @@ export type InvoicesWithTotals = {
   email_opened_at?: string | null;
   link_clicked_at?: string | null;
   doc_type?: "quote" | "invoice";
+  invoice_date?: string;
+  due_date?: string;
+  template_id?: string;
+  subtotal?: number;
 };
