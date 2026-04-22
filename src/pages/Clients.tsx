@@ -195,7 +195,7 @@ export function Clients() {
               Total Partner Revenue
             </p>
             <p className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-primary to-violet-500">
-              {totalRevenue.toLocaleString("en-US", {
+              {(totalRevenue / 100).toLocaleString("en-US", {
                 style: "currency",
                 currency: "USD",
                 maximumFractionDigits: 0,

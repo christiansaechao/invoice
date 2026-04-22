@@ -37,13 +37,13 @@ export function HeroSection() {
 
         {/* ── Left copy ── */}
         <div className="flex flex-col gap-7">
-          <h1 className="text-[clamp(2.8rem,6vw,5rem)] font-serif font-extrabold leading-[1.05] tracking-tight text-foreground">
+          <h1 className="text-[clamp(2.8rem,6vw,5rem)] font-serif font-extrabold leading-[1.05] tracking-tight text-slate-900">
             Send the Receipt.
             <br />
-            <span className="text-primary">Get Paid Faster.</span>
+            <span className="text-[#6200EE]">Get Paid Faster.</span>
           </h1>
 
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-md">
+          <p className="text-lg text-slate-600 leading-relaxed max-w-md">
             The professional invoicing platform built for freelancers, creators,
             and independent contractors who mean business.
           </p>
@@ -52,7 +52,7 @@ export function HeroSection() {
             <Link to="/sign-up">
               <Button
                 size="lg"
-                className="rounded-full px-8 h-12 text-base shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-shadow cursor-pointer"
+                className="bg-[#6200EE] text-white hover:bg-[#6200EE]/90 rounded-full px-8 h-12 text-base shadow-lg shadow-[#6200EE]/30 hover:shadow-[#6200EE]/50 transition-shadow cursor-pointer"
               >
                 Send Receipts
               </Button>
@@ -69,8 +69,8 @@ export function HeroSection() {
                   </div>
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground font-medium">
-                Joined by <strong className="text-foreground">12k+</strong> freelancers
+              <span className="text-sm text-slate-500 font-medium">
+                Joined by <strong className="text-slate-900">12k+</strong> freelancers
               </span>
             </div>
           </div>
@@ -82,10 +82,10 @@ export function HeroSection() {
             <div className="flex flex-wrap gap-8">
               {STATS.map((s) => (
                 <div key={s.label} className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+                  <span className="text-[10px] font-semibold tracking-widest uppercase text-slate-500">
                     {s.label}
                   </span>
-                  <span className="text-2xl font-bold text-foreground tabular-nums">
+                  <span className="text-2xl font-bold text-slate-900 tabular-nums">
                     {s.value}
                   </span>
                 </div>
@@ -105,17 +105,17 @@ export function HeroSection() {
           {/* Card with purple left accent */}
           <div className="relative z-10 bg-white rounded-3xl shadow-2xl border border-border/60 w-full max-w-sm overflow-hidden">
             {/* Purple accent stripe */}
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary" />
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#6200EE]" />
 
             {/* Card content */}
             <div className="p-7">
               {/* Header row */}
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <p className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-1">
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-1">
                     Total Earnings
                   </p>
-                  <p className="text-4xl font-extrabold tabular-nums text-foreground">
+                  <p className="text-4xl font-extrabold tabular-nums text-slate-900">
                     $24,840<span className="text-2xl">.00</span>
                   </p>
                 </div>
@@ -129,18 +129,18 @@ export function HeroSection() {
                 {MOCK_INVOICES.map((inv) => (
                   <div
                     key={inv.name}
-                    className="flex items-center justify-between bg-muted/40 rounded-2xl px-4 py-3"
+                    className="flex items-center justify-between bg-slate-50 rounded-2xl px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">
                         {inv.paid
-                          ? <CheckCircle2 className="h-4 w-4 text-primary" />
-                          : <Clock className="h-4 w-4 text-muted-foreground" />
+                          ? <CheckCircle2 className="h-4 w-4 text-[#6200EE]" />
+                          : <Clock className="h-4 w-4 text-slate-400" />
                         }
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-foreground leading-tight">{inv.name}</p>
-                        <p className="text-xs text-muted-foreground">{inv.sub}</p>
+                        <p className="text-sm font-semibold text-slate-900 leading-tight">{inv.name}</p>
+                        <p className="text-xs text-slate-500">{inv.sub}</p>
                       </div>
                     </div>
                     <span

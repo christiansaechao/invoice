@@ -9,13 +9,17 @@ import { InvoiceDetailsForm } from "./InvoiceDetailsForm";
 import { LineItemsForm } from "./LineItemsForm";
 import { Button } from "@/components/ui/button";
 import { Save, Loader2, Printer } from "lucide-react";
+import { fetchClients } from "@/services/invoice.services";
 import {
-  fetchClients,
-  fetchEntriesByInvoiceId,
-  updateFullInvoice,
-} from "@/services/invoice.services";
+  useFetchEntriesByInvoiceId,
+  useUpdateFullInvoice,
+} from "@/api/invoice.api";
 import { toast } from "sonner";
-import { calculateTotals, getBillToOverride } from "@/utils/invoice.utils";
+import {
+  calculateTotals,
+  getBillToOverride,
+  createEmptyRow,
+} from "@/utils/invoice.utils";
 import { useLineItems } from "@/hooks/useLineItems";
 import type { InvoicesWithTotals } from "@/types/invoice.types";
 import { TemplateRenderer } from "./TemplateRenderer";
@@ -34,9 +38,6 @@ export function EditInvoiceModal({
   invoice: InvoicesWithTotals | null;
   onSaveSuccess: () => void;
 }) {
-  const [isDeploying, setIsDeploying] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
-
   // Generic states mapping the builder
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState("");
@@ -58,6 +59,14 @@ export function EditInvoiceModal({
     removeRow,
   } = useLineItems([]);
 
+  const { data: fetchedEntries, isFetching: isFetchingEntries } =
+    useFetchEntriesByInvoiceId(isOpen ? invoice?.id || "" : "");
+
+  console.log(fetchedEntries);
+
+  const { mutateAsync: updateFullInvoiceMutation, isPending: isDeploying } =
+    useUpdateFullInvoice();
+
   // Initialization Hydrating Hooks
   useEffect(() => {
     if (isOpen) {
@@ -69,29 +78,29 @@ export function EditInvoiceModal({
     if (isOpen && invoice) {
       setInvoiceNumber(String(invoice.invoice_number || ""));
       setSelectedClientId(invoice.client_id || "");
-      // Re-hydrate the date using the identical date-stripper used in components/services explicitly matching `<input type="date">`
-      // Prefer invoice_date, fall back to created_at if null
       const rawDate = invoice.invoice_date || invoice.created_at;
       setDate(rawDate ? rawDate.split("T")[0] : "");
       setDueDate(invoice.due_date || "");
       setCurrency(invoice.currency || "USD");
       setTemplateId(invoice.template_id || "standard");
-      setIsFetching(true);
-      fetchEntriesByInvoiceId(invoice.id).then((fetchedEntries) => {
-        setRows(fetchedEntries.length > 0 ? fetchedEntries : []);
-        setIsFetching(false);
-      });
     } else {
       // Flush form if closed
       setInvoiceNumber("");
       setSelectedClientId("");
       setDate("");
-      setRows([]);
+      setRows([createEmptyRow()]);
       setCurrency("USD");
       setTemplateId("standard");
       setDueDate("");
     }
   }, [isOpen, invoice, setRows]);
+
+  // Sync React Query data into local state
+  useEffect(() => {
+    if (isOpen && invoice && fetchedEntries) {
+      setRows(fetchedEntries.length > 0 ? fetchedEntries : [createEmptyRow()]);
+    }
+  }, [isOpen, invoice, fetchedEntries, setRows]);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const billToOverride = getBillToOverride(selectedClient);
@@ -107,30 +116,31 @@ export function EditInvoiceModal({
       return;
     }
 
-    setIsDeploying(true);
+    try {
+      const res = await updateFullInvoiceMutation({
+        invoiceId: invoice.id,
+        clientId: selectedClientId,
+        invoiceNumber,
+        rows,
+        invoiceDate: date,
+        dueDate,
+        invoiceDetails: {
+          subtotal: subtotal,
+          total_amount: total,
+          currency,
+          template_id: templateId,
+        },
+      });
 
-    const res = await updateFullInvoice(
-      invoice.id,
-      selectedClientId,
-      invoiceNumber,
-      rows,
-      date,
-      dueDate,
-      {
-        subtotal: subtotal,
-        total_amount: total,
-        currency,
-        template_id: templateId,
-      },
-    );
-    setIsDeploying(false);
-
-    if (res.success) {
-      toast.success("Successfully updated invoice.");
-      onSaveSuccess();
-      onClose();
-    } else {
-      toast.error(res.error || "Failed to update record.");
+      if (res.success) {
+        toast.success("Successfully updated invoice.");
+        onSaveSuccess();
+        onClose();
+      } else {
+        toast.error(res.error || "Failed to update record.");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to update record.");
     }
   };
 
@@ -210,7 +220,7 @@ export function EditInvoiceModal({
               <Button
                 size="sm"
                 onClick={handleSave}
-                disabled={isDeploying || isFetching || !invoice}
+                disabled={isDeploying || isFetchingEntries || !invoice}
                 className="h-8"
               >
                 {isDeploying ? (
@@ -224,7 +234,7 @@ export function EditInvoiceModal({
           </div>
 
           <div className="p-6 flex flex-col gap-6 flex-1 overflow-y-auto">
-            {isFetching ? (
+            {isFetchingEntries ? (
               <div className="flex items-center justify-center flex-1">
                 <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               </div>

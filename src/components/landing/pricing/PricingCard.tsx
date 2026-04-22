@@ -20,8 +20,8 @@ function BillingToggle({
   onChange: (v: BillingInterval) => void;
 }) {
   return (
-    <div className="flex items-center justify-center gap-4 mb-12">
-      <span className={cn("text-sm font-semibold transition-colors", interval === "month" ? "text-foreground" : "text-muted-foreground")}>
+    <div className="flex items-center justify-center gap-4 mb-12 text-slate-900">
+      <span className={cn("text-sm font-semibold transition-colors", interval === "month" ? "text-slate-900" : "text-slate-400")}>
         Monthly
       </span>
 
@@ -31,8 +31,8 @@ function BillingToggle({
         aria-checked={interval === "year"}
         onClick={() => onChange(interval === "month" ? "year" : "month")}
         className={cn(
-          "relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          interval === "year" ? "bg-primary" : "bg-muted"
+          "relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6200EE]",
+          interval === "year" ? "bg-[#6200EE]" : "bg-slate-200"
         )}
       >
         <span className={cn(
@@ -41,7 +41,7 @@ function BillingToggle({
         )} />
       </button>
 
-      <span className={cn("text-sm font-semibold transition-colors", interval === "year" ? "text-foreground" : "text-muted-foreground")}>
+      <span className={cn("text-sm font-semibold transition-colors", interval === "year" ? "text-slate-900" : "text-slate-400")}>
         Annual
       </span>
 
@@ -84,8 +84,8 @@ function PlanCard({
     <div className={cn(
       "relative flex flex-col rounded-2xl border p-8 transition-all duration-200",
       featured
-        ? "bg-primary text-primary-foreground border-primary shadow-2xl shadow-primary/25 scale-[1.02]"
-        : "bg-card border-border shadow-sm hover:shadow-md"
+        ? "bg-[#6200EE] text-white border-[#6200EE] shadow-2xl shadow-[#6200EE]/25 scale-[1.02]"
+        : "bg-white border-slate-200 shadow-sm hover:shadow-md"
     )}>
       {featured && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -98,11 +98,11 @@ function PlanCard({
 
       {/* Header */}
       <div className="mb-6">
-        <p className={cn("text-[10px] font-bold tracking-widest uppercase mb-2", featured ? "text-primary-foreground/60" : "text-muted-foreground")}>
+        <p className={cn("text-[10px] font-bold tracking-widest uppercase mb-2", featured ? "text-white/60" : "text-slate-500")}>
           {tierLabel}
         </p>
-        <h3 className="text-2xl font-bold mb-1">{name}</h3>
-        <p className={cn("text-sm", featured ? "text-primary-foreground/70" : "text-muted-foreground")}>
+        <h3 className={cn("text-2xl font-bold mb-1", featured ? "text-white" : "text-slate-900")}>{name}</h3>
+        <p className={cn("text-sm", featured ? "text-white/70" : "text-slate-500")}>
           {description}
         </p>
       </div>
@@ -110,13 +110,13 @@ function PlanCard({
       {/* Price */}
       <div className="mb-8">
         <div className="flex items-end gap-1">
-          <span className="text-5xl font-extrabold tracking-tight leading-none">{monthlyEquiv}</span>
+          <span className={cn("text-5xl font-extrabold tracking-tight leading-none", featured ? "text-white" : "text-slate-900")}>{monthlyEquiv}</span>
           {monthlyEquiv !== "Free" && (
-            <span className={cn("text-sm mb-1.5", featured ? "text-primary-foreground/70" : "text-muted-foreground")}>/mo</span>
+            <span className={cn("text-sm mb-1.5", featured ? "text-white/70" : "text-slate-500")}>/mo</span>
           )}
         </div>
         {billedNote && (
-          <p className={cn("text-xs mt-1", featured ? "text-primary-foreground/50" : "text-muted-foreground")}>
+          <p className={cn("text-xs mt-1", featured ? "text-white/50" : "text-slate-500")}>
             {billedNote}
           </p>
         )}
@@ -125,23 +125,23 @@ function PlanCard({
       {/* Features */}
       <ul className="flex flex-col gap-3 mb-10 flex-1">
         {features.map((feat) => (
-          <li key={feat} className="flex items-start gap-3 text-sm">
-            <span className={cn("mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center", featured ? "bg-white/20" : "bg-accent")}>
-              <Check className={cn("h-3 w-3", featured ? "text-primary-foreground" : "text-primary")} />
+          <li key={feat} className={cn("flex items-start gap-3 text-sm", featured ? "text-white/90" : "text-slate-600")}>
+            <span className={cn("mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center", featured ? "bg-white/20" : "bg-slate-100")}>
+              <Check className={cn("h-3 w-3", featured ? "text-white" : "text-[#6200EE]")} />
             </span>
             {feat}
           </li>
         ))}
       </ul>
 
-      {/* CTA — always a link to sign-up on the public page */}
+      {/* CTA — locked to brand colors */}
       <Link to={ctaHref}>
         <Button
           className={cn(
-            "w-full h-12 rounded-xl font-semibold text-sm",
-            featured ? "bg-white text-primary hover:bg-white/90" : ""
+            "w-full h-12 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90",
+            featured ? "bg-white text-[#6200EE]" : "bg-[#6200EE] text-white"
           )}
-          variant={featured ? "secondary" : "default"}
+          style={featured ? {} : { backgroundColor: "#6200EE", color: "white" }}
         >
           {featured ? (
             <span className="flex items-center gap-2"><Zap className="h-4 w-4" />{ctaLabel}</span>

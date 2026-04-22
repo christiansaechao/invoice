@@ -3,7 +3,7 @@ import { InvoiceDetailsForm } from "../components/invoice/InvoiceDetailsForm";
 import { NudgeControls } from "../components/invoice/NudgeControls";
 import { LineItemsForm } from "../components/invoice/LineItemsForm";
 import { InvoiceActionButtons } from "../components/invoice/InvoiceActionButtons";
-import { saveInvoice, fetchClients } from "@/services/invoice.services";
+import { saveInvoice, fetchClients, sendInvoiceEmail } from "@/services/invoice.services";
 import { toast } from "sonner";
 import { getCurrentSubscription } from "@/services/subscription.services";
 import {
@@ -58,6 +58,7 @@ export function NewInvoice() {
     MAGIC_CREDIT_LIMITS.starter,
   );
   const [daysUntilReset, setDaysUntilReset] = useState<number>(0);
+  const [isSending, setIsSending] = useState(false);
 
   // NEW: Fetch user's credits on mount
   useEffect(() => {
@@ -248,6 +249,45 @@ export function NewInvoice() {
     // Update the preview with the server-assigned invoice number
     if (result.success && result.invoice?.invoice_number) {
       setInvoiceNumber(String(result.invoice.invoice_number));
+      return result.invoice; // Return the saved invoice data
+    }
+    return null;
+  };
+
+  const handleSendToClient = async () => {
+    if (!selectedClientId) {
+      toast.error("Please select a client first.");
+      return;
+    }
+
+    const client = clients.find((c) => c.id === selectedClientId);
+    if (!client?.email) {
+      toast.error("This client doesn't have an email address. Please add one first.");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      // 1. Ensure invoice is saved
+      let savedInvoice = null;
+      if (!invoiceNumber) {
+        toast("Saving invoice before sending...");
+        savedInvoice = await saveNewInvoice();
+        if (!savedInvoice) throw new Error("Failed to save invoice");
+      }
+
+      // 2. Dispatch email
+      const accessToken = session?.access_token;
+      if (!accessToken) throw new Error("Authentication error");
+
+      // We use the same data shape as the renderer
+      await sendInvoiceEmail(previewDocument, client.email, accessToken);
+      toast.success("Invoice sent to " + client.email);
+    } catch (err: any) {
+      console.error("Failed to send invoice", err);
+      toast.error(err.message || "Failed to send invoice");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -299,6 +339,8 @@ export function NewInvoice() {
         <InvoiceActionButtons
           saveNewInvoice={saveNewInvoice}
           printInvoice={printInvoice}
+          onSend={handleSendToClient}
+          isSending={isSending}
           disabled={!canCreateInvoice}
         />
       </div>
@@ -308,7 +350,6 @@ export function NewInvoice() {
           {/* B. Document Setup (Workspace + Template) */}
           <div className="flex flex-col gap-6">
             <CreateInvoiceWorkspace date={date} setDate={setDate} />
-
             <div className="flex flex-col gap-2 min-w-0 pt-6">
               <label
                 htmlFor="template-select"
@@ -341,10 +382,10 @@ export function NewInvoice() {
               setSelectedClientId={setSelectedClientId}
               onClientCreated={handleClientCreated}
               invoiceNumber={invoiceNumber}
-              templateId={""}
-              setTemplateId={() => {}}
               currency={currency}
               setCurrency={setCurrency}
+              dueDate={dueDate}
+              setDueDate={setDueDate}
             />
           </div>
           <div className="flex flex-col gap-8">

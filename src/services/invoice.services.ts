@@ -91,6 +91,9 @@ export const fetchEntriesByInvoiceId = async (invoiceId: string) => {
   return (data || []).map((entry: any) => ({
     ...entry,
     service_date: entry.service_date ? entry.service_date.split("T")[0] : "",
+    quantity: entry.quantity?.toString() || "",
+    unit_price: entry.unit_price ? (entry.unit_price / 100).toFixed(2) : "",
+    amount: entry.amount ? (entry.amount / 100).toFixed(2) : "",
   }));
 };
 
@@ -108,10 +111,14 @@ export const updateInvoiceEntries = async (invoiceId: string, rows: Row[]) => {
     invoice_id: invoiceId,
     service_date: row.service_date,
     quantity: row.quantity ? parseFloat(row.quantity.toString()) : null,
-    amount: row.amount ? parseFloat(row.amount.toString()) : null,
+    amount: row.amount
+      ? Math.round(parseFloat(row.amount.toString()) * 100)
+      : null,
     description: row.description,
     item_name: row.item_name,
-    unit_price: row.unit_price ? parseFloat(row.unit_price.toString()) : null,
+    unit_price: row.unit_price
+      ? Math.round(parseFloat(row.unit_price.toString()) * 100)
+      : null,
     category: row.category,
   }));
 
@@ -126,7 +133,6 @@ export const updateInvoiceEntries = async (invoiceId: string, rows: Row[]) => {
 
   return { success: true, data };
 };
-
 
 export const saveInvoice = async (
   rows: Row[],
@@ -151,7 +157,6 @@ export const saveInvoice = async (
     doc_type?: "invoice" | "quote";
   },
 ) => {
-  // Resolve the authenticated user for the RPC call
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -165,76 +170,65 @@ export const saveInvoice = async (
     };
   }
 
-  // ── 1. Create the invoice via the atomic sequence RPC ──────────────────
-  // The RPC assigns invoice_number atomically and snapshots payment_link.
-  const { data: invoice, error: invoiceError } = await supabase.rpc(
-    "create_invoice_with_atomic_number",
-    {
-      p_user_id:        user.id,
-      p_client_id:      clientId        || null,
-      p_invoice_date:   invoiceDate     || null,
-      p_due_date:       dueDate         || null,
-      p_currency:       invoiceDetails.currency       ?? "USD",
-      p_subtotal:       invoiceDetails.subtotal        ?? 0,
-      p_total_amount:   invoiceDetails.total_amount    ?? 0,
-      p_discount_type:  invoiceDetails.discount_type   ?? null,
-      p_discount_value: invoiceDetails.discount_value  ?? null,
-      p_tax_rate:       invoiceDetails.tax_rate        ?? null,
-      p_tax_amount:     invoiceDetails.tax_amount      ?? null,
-      p_notes:          invoiceDetails.notes           ?? null,
-      p_terms:          invoiceDetails.terms           ?? null,
-      p_template_id:    invoiceDetails.template_id     ?? null,
-      p_doc_type:       invoiceDetails.doc_type        ?? "invoice",
-      p_auto_nudge:     invoiceDetails.auto_nudge      ?? true,
-      p_nudge_profile:  invoiceDetails.nudge_profile,
-      p_work_week_only: invoiceDetails.work_week_only,
-    }
-  );
-
-  if (invoiceError) {
-    console.error("invoice rpc error", invoiceError);
-    return {
-      success: false,
-      error: invoiceError,
-      message: "There was an issue creating an invoice",
-      entries: null,
-      invoice: null,
-    };
-  }
-
-  // ── 2. Insert line items against the new invoice ────────────────────────
-  const formattedRows = rows.map((row) => ({
-    invoice_id: invoice.id,
+  // Format the JSON payload for the RPC
+  const jsonEntries = rows.map((row) => ({
     service_date: row.service_date,
-    quantity: row.quantity ? parseFloat(row.quantity.toString()) : null,
-    amount: row.amount ? parseFloat(row.amount.toString()) : null,
-    description: row.description,
-    item_name: row.item_name,
-    unit_price: row.unit_price ? parseFloat(row.unit_price.toString()) : null,
-    category: row.category,
+    quantity: row.quantity ? parseFloat(row.quantity.toString()) : 0,
+    unit_price: row.unit_price
+      ? Math.round(parseFloat(row.unit_price.toString()) * 100)
+      : 0,
+    amount: row.amount
+      ? Math.round(parseFloat(row.amount.toString()) * 100)
+      : 0,
+    description: row.description || "",
+    item_name: row.item_name || "",
+    category: row.category || "service",
   }));
 
-  const { data: entries, error: entriesError } = await supabase
-    .from("entries")
-    .insert(formattedRows)
-    .select();
+  // Single RPC call for atomicity
+  const { data, error } = await supabase.rpc(
+    "create_invoice_with_atomic_number",
+    {
+      p_user_id: user.id,
+      p_client_id: clientId || null,
+      p_invoice_date: invoiceDate || null,
+      p_due_date: dueDate || null,
+      p_currency: invoiceDetails.currency ?? "USD",
+      p_subtotal: invoiceDetails.subtotal ?? 0,
+      p_total_amount: invoiceDetails.total_amount ?? 0,
+      p_discount_type: invoiceDetails.discount_type ?? null,
+      p_discount_value: invoiceDetails.discount_value ?? null,
+      p_tax_rate: invoiceDetails.tax_rate ?? null,
+      p_tax_amount: invoiceDetails.tax_amount ?? null,
+      p_notes: invoiceDetails.notes ?? null,
+      p_terms: invoiceDetails.terms ?? null,
+      p_template_id: invoiceDetails.template_id ?? null,
+      p_doc_type: invoiceDetails.doc_type ?? "invoice",
+      p_auto_nudge: invoiceDetails.auto_nudge ?? true,
+      p_nudge_profile: invoiceDetails.nudge_profile,
+      p_work_week_only: invoiceDetails.work_week_only,
+      p_entries: jsonEntries,
+    },
+  );
 
-  if (entriesError) {
+  if (error) {
+    console.error("Atomic invoice creation error:", error);
     return {
       success: false,
-      error: entriesError,
-      message: "There was an issue creating the entries for the invoice",
+      error,
+      message: "Failed to create invoice and entries",
       entries: null,
       invoice: null,
     };
   }
 
+  // data will be { invoice: {...}, entries: [...] }
   return {
     success: true,
-    message: "Successfully created new invoice",
+    message: "Successfully created new invoice and entries",
     error: null,
-    entries,
-    invoice,  // includes server-assigned invoice_number
+    entries: data.entries,
+    invoice: data.invoice,
   };
 };
 
@@ -299,4 +293,30 @@ export const updateFullInvoice = async (
   // Transactionally map entry cascade onto successfully patched parent
   const entriesRes = await updateInvoiceEntries(invoiceId, rows);
   return entriesRes;
+};
+
+export const sendInvoiceEmail = async (
+  invoiceData: any,
+  recipientEmail: string,
+  accessToken: string,
+) => {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/emailer`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      template_id: invoiceData.templateId,
+      recipientEmail,
+      invoiceData,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to dispatch email");
+  }
+
+  return response.json();
 };

@@ -1,6 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { Loader2 } from "lucide-react";
-import { fetchInvoicesWithTotals, fetchClients } from "@/services/invoice.services";
+import {
+  fetchInvoicesWithTotals,
+  fetchClients,
+} from "@/services/invoice.services";
 import { useFetchProfile } from "@/api/user.api";
 import type { InvoicesWithTotals } from "@/types/invoice.types";
 
@@ -16,25 +19,44 @@ import { QuickEditInvoice } from "@/components/invoice/QuickEditInvoice";
 function buildBreakdown(paidTotal: number, pendingTotal: number) {
   const grand = paidTotal + pendingTotal || 1;
   return [
-    { label: "PAID INVOICES", value: paidTotal, pct: Math.round((paidTotal / grand) * 100), color: "#6200EE" },
-    { label: "PENDING INVOICES", value: pendingTotal, pct: Math.round((pendingTotal / grand) * 100), color: "#03DAC6" },
+    {
+      label: "PAID INVOICES",
+      value: paidTotal,
+      pct: Math.round((paidTotal / grand) * 100),
+      color: "#6200EE",
+    },
+    {
+      label: "PENDING INVOICES",
+      value: pendingTotal,
+      pct: Math.round((pendingTotal / grand) * 100),
+      color: "#03DAC6",
+    },
   ];
 }
 
-function buildChartData(invoices: InvoicesWithTotals[], grouping: "day" | "month") {
+function buildChartData(
+  invoices: InvoicesWithTotals[],
+  grouping: "day" | "month",
+) {
   const groups: Record<string, number> = {};
   const sorted = [...invoices]
     .filter((i) => i.status === "paid")
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    .sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
 
   sorted.forEach((inv) => {
     const date = new Date(inv.created_at);
     const key =
       grouping === "day"
         ? date.toLocaleDateString("default", { month: "short", day: "numeric" })
-        : date.toLocaleDateString("default", { month: "short", year: "numeric" });
+        : date.toLocaleDateString("default", {
+            month: "short",
+            year: "numeric",
+          });
     if (!groups[key]) groups[key] = 0;
-    groups[key] += inv.total_amount_owed || 0;
+    groups[key] += (inv.total_amount_owed || 0) / 100;
   });
 
   return Object.entries(groups).map(([date, revenue]) => ({ date, revenue }));
@@ -70,35 +92,53 @@ export function DashboardHome() {
   const refresh = () => setRefreshTrigger((t) => t + 1);
 
   // ── Derived data ──────────────────────────────────────────────────────────
-  const paidInvoices = useMemo(() => invoices.filter((i) => i.status === "paid"), [invoices]);
-  const pendingInvoices = useMemo(() => invoices.filter((i) => i.status === "pending"), [invoices]);
-  const overdueInvoices = useMemo(() => invoices.filter((i) => i.status === "overdue"), [invoices]);
+  const paidInvoices = useMemo(
+    () => invoices.filter((i) => i.status === "paid"),
+    [invoices],
+  );
+
+  const pendingInvoices = useMemo(
+    () => invoices.filter((i) => i.status === "pending"),
+    [invoices],
+  );
+  const overdueInvoices = useMemo(
+    () => invoices.filter((i) => i.status === "overdue"),
+    [invoices],
+  );
 
   const totalRevenue = useMemo(
-    () => paidInvoices.reduce((s, i) => s + (i.total_amount_owed || 0), 0),
-    [paidInvoices]
+    () =>
+      paidInvoices.reduce((s, i) => s + (i.total_amount_owed || 0) / 100, 0),
+    [paidInvoices],
   );
+
+  console.log(totalRevenue);
+
   const pendingAmount = useMemo(
-    () => pendingInvoices.reduce((s, i) => s + (i.total_amount_owed || 0), 0),
-    [pendingInvoices]
+    () =>
+      pendingInvoices.reduce((s, i) => s + (i.total_amount_owed || 0) / 100, 0),
+    [pendingInvoices],
   );
 
   const recentInvoices = useMemo(
     () =>
       [...invoices]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        )
         .slice(0, 4),
-    [invoices]
+    [invoices],
   );
 
   const chartData = useMemo(
     () => buildChartData(invoices, chartGrouping),
-    [invoices, chartGrouping]
+    [invoices, chartGrouping],
   );
 
   const breakdown = useMemo(
     () => buildBreakdown(totalRevenue, pendingAmount),
-    [totalRevenue, pendingAmount]
+    [totalRevenue, pendingAmount],
   );
 
   // ── Loading state ─────────────────────────────────────────────────────────
@@ -120,7 +160,6 @@ export function DashboardHome() {
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-
         {/* Left: chart + recent invoices */}
         <div className="xl:col-span-2 flex flex-col gap-6 min-w-0">
           <RevenueChart
@@ -128,19 +167,18 @@ export function DashboardHome() {
             chartGrouping={chartGrouping}
             onGroupingChange={setChartGrouping}
           />
-          <RecentInvoicesCard
-            invoices={recentInvoices}
-            isLoading={isLoading}
-          />
+          <RecentInvoicesCard invoices={recentInvoices} isLoading={isLoading} />
           <NextCollaborationCard />
         </div>
 
         {/* Right: sidebar cards */}
-        <div className="xl:col-span-1 flex flex-col gap-5 min-w-0 sticky top-4">
+        <div className="xl:col-span-1 flex flex-col gap-5 min-w-0">
           <QuickEditInvoice invoices={invoices} onSaveSuccess={refresh} />
-          <RevenueBreakdownCard breakdown={breakdown} clientCount={clients.length} />
+          <RevenueBreakdownCard
+            breakdown={breakdown}
+            clientCount={clients.length}
+          />
         </div>
-
       </div>
     </div>
   );

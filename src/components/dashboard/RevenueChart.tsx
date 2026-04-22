@@ -56,7 +56,23 @@ export function RevenueChart({ chartData, chartGrouping, onGroupingChange }: Rev
                 tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
                 tickFormatter={(v) => `$${v}`}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartTooltip 
+                content={
+                  <ChartTooltipContent 
+                    formatter={(value) => (
+                      <div className="flex w-full items-center justify-between gap-6">
+                        <span className="text-muted-foreground flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-[#6200EE]" />
+                          Earned Revenue
+                        </span>
+                        <span className="font-bold tabular-nums text-foreground">
+                          {Number(value).toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                        </span>
+                      </div>
+                    )}
+                  />
+                } 
+              />
               <Area
                 type="monotone"
                 dataKey="revenue"

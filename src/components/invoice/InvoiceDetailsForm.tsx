@@ -18,12 +18,12 @@ type InvoiceDetailsFormProps = {
   onClientCreated: (client: any) => void;
   invoiceNumber: string;
   // setInvoiceNumber removed — number is now assigned by the DB RPC
-  templateId: string;
-  setTemplateId: (id: string) => void;
   currency: string;
   setCurrency: (code: string) => void;
   dueDate: string;
   setDueDate: (date: string) => void;
+  templateId?: string;
+  setTemplateId?: (id: string) => void;
 };
 
 export function InvoiceDetailsForm({
@@ -32,12 +32,12 @@ export function InvoiceDetailsForm({
   setSelectedClientId,
   onClientCreated,
   invoiceNumber,
-  templateId,
-  setTemplateId,
   currency,
   setCurrency,
   dueDate,
-  setDueDate
+  setDueDate,
+  templateId,
+  setTemplateId
 }: InvoiceDetailsFormProps) {
   const { session } = useUser();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -171,6 +171,7 @@ export function InvoiceDetailsForm({
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
         </div>
+
 
       </div>
     </div>

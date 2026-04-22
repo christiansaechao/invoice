@@ -97,7 +97,7 @@ export function InvoiceTable({
 
                 {/* Total */}
                 <td className="py-3.5 px-4 text-right tabular-nums font-semibold text-foreground">
-                  {(inv.total_amount_owed || 0).toLocaleString("en-US", {
+                  {((inv.total_amount_owed || 0) / 100).toLocaleString("en-US", {
                     style: "currency",
                     currency: "USD",
                   })}

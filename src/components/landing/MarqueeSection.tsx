@@ -22,8 +22,8 @@ export function MarqueeSection() {
   const items = [...BRANDS, ...BRANDS];
 
   return (
-    <section className="py-10 border-y border-border/40 bg-white overflow-hidden">
-      <p className="text-center text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase mb-7">
+    <section className="py-10 border-y border-slate-100 bg-white overflow-hidden">
+      <p className="text-center text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-7">
         Used by creators working with
       </p>
 
@@ -39,7 +39,7 @@ export function MarqueeSection() {
           {items.map((brand, i) => (
             <div
               key={`${brand.name}-${i}`}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-default select-none"
+              className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors cursor-default select-none"
             >
               <span className="text-base leading-none">{brand.icon}</span>
               <span className="text-sm font-semibold tracking-tight">{brand.name}</span>

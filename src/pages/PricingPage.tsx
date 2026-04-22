@@ -8,7 +8,7 @@ import { PricingCta } from "@/components/landing/pricing/PricingCta";
 
 export function PricingPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-background font-sans">
+    <div className="flex flex-col min-h-screen bg-white font-sans">
       <LandingNav />
 
       <main className="flex-1">

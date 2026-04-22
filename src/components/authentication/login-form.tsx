@@ -45,12 +45,12 @@ export function LoginForm({
       {...props}
     >
       {/* Left Panel */}
-      <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
+      <div className="relative hidden h-full flex-col bg-slate-950 p-10 text-white lg:flex">
         <div className="absolute inset-0 bg-[#0a0a0b]" />
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-30" />
 
         <div className="relative z-20 flex items-center text-lg font-medium">
-          <Landmark className="mr-2 h-6 w-6" />
+          <Landmark className="mr-2 h-6 w-6 text-[#6200EE]" />
           Reciept
         </div>
 
@@ -69,13 +69,13 @@ export function LoginForm({
 
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-primary fill-primary/20" />
+              <CheckCircle2 className="h-5 w-5 text-[#6200EE] fill-[#6200EE]/20" />
               <span className="text-sm font-medium">
                 Create and save invoices in minutes
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-primary fill-primary/20" />
+              <CheckCircle2 className="h-5 w-5 text-[#6200EE] fill-[#6200EE]/20" />
               <span className="text-sm font-medium">
                 Export a polished PDF anytime
               </span>
@@ -92,13 +92,13 @@ export function LoginForm({
       </div>
 
       {/* Right Panel */}
-      <div className="lg:p-8">
+      <div className="lg:p-8 bg-white h-full flex flex-col justify-center">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-87.5">
           <div className="flex flex-col space-y-2 text-left">
-            <h1 className="text-4xl font-serif font-medium tracking-tight text-foreground">
+            <h1 className="text-4xl font-serif font-medium tracking-tight text-slate-900">
               Welcome back
             </h1>
-            <p className="text-sm text-muted-foreground italic">
+            <p className="text-sm text-slate-500 italic">
               Sign in to create, edit, and export invoices.
             </p>
           </div>
@@ -109,7 +109,7 @@ export function LoginForm({
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="email"
-                    className="uppercase text-xs font-bold text-muted-foreground tracking-wider"
+                    className="uppercase text-xs font-bold text-slate-500 tracking-wider"
                   >
                     Email
                   </Label>
@@ -117,7 +117,7 @@ export function LoginForm({
                     id="email"
                     type="email"
                     placeholder="name@company.com"
-                    className="bg-muted/30 border-input h-11"
+                    className="bg-slate-50 border-slate-200 h-11 text-slate-900 placeholder:text-slate-400"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -128,13 +128,13 @@ export function LoginForm({
                   <div className="flex items-center justify-between">
                     <Label
                       htmlFor="password"
-                      className="uppercase text-xs font-bold text-muted-foreground tracking-wider"
+                      className="uppercase text-xs font-bold text-slate-500 tracking-wider"
                     >
                       Password
                     </Label>
                     <a
                       href="/forgot-password"
-                      className="ml-auto inline-block text-xs text-primary font-medium hover:underline"
+                      className="ml-auto inline-block text-xs text-[#6200EE] font-semibold hover:underline"
                     >
                       Forgot password?
                     </a>
@@ -145,7 +145,7 @@ export function LoginForm({
                     type="password"
                     required
                     placeholder="••••••••"
-                    className="bg-muted/30 border-input h-11 text-2xl tracking-widest placeholder:text-muted-foreground/50 placeholder:text-sm placeholder:tracking-normal"
+                    className="bg-slate-50 border-slate-200 h-11 text-2xl tracking-widest text-slate-900 placeholder:text-slate-400/50 placeholder:text-sm placeholder:tracking-normal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -155,13 +155,13 @@ export function LoginForm({
                   <input
                     type="checkbox"
                     id="remember"
-                    className="h-4 w-4 rounded border-input text-primary cursor-pointer accent-primary"
+                    className="h-4 w-4 rounded border-slate-200 text-[#6200EE] cursor-pointer accent-[#6200EE]"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                   />
                   <label
                     htmlFor="remember"
-                    className="text-sm font-medium text-muted-foreground cursor-pointer"
+                    className="text-sm font-medium text-slate-500 cursor-pointer"
                   >
                     Remember this device
                   </label>
@@ -171,8 +171,9 @@ export function LoginForm({
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="w-full h-11 bg-[#6200EE] hover:bg-[#6200EE]/90 text-white font-bold"
                   disabled={isLoading}
+                  style={{ backgroundColor: "#6200EE", color: "white" }}
                 >
                   {isLoading ? (
                     "Signing in..."
@@ -185,11 +186,11 @@ export function LoginForm({
               </div>
             </form>
 
-            <div className="text-center text-sm">
+            <div className="text-center text-sm text-slate-600">
               Don&apos;t have an account?{" "}
               <a
                 href="/sign-up"
-                className="font-bold text-primary hover:underline"
+                className="font-bold text-[#6200EE] hover:underline"
               >
                 Create one
               </a>
@@ -197,16 +198,16 @@ export function LoginForm({
           </div>
         </div>
 
-        <div className="absolute bottom-8 right-0 left-0 lg:left-1/2 flex justify-center gap-8 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-          <a href="#" className="hover:text-foreground">
+        <div className="absolute bottom-8 right-0 left-0 lg:left-1/2 flex justify-center gap-8 text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
+          <a href="#" className="hover:text-slate-900 transition-colors">
             Privacy
           </a>
           <span>-</span>
-          <a href="#" className="hover:text-foreground">
+          <a href="#" className="hover:text-slate-900 transition-colors">
             Terms
           </a>
           <span>-</span>
-          <a href="#" className="hover:text-foreground">
+          <a href="#" className="hover:text-slate-900 transition-colors">
             Support
           </a>
         </div>

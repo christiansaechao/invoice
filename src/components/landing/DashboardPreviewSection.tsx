@@ -51,8 +51,8 @@ const COLLABS = [
 
 // ─── Bottom stat bar ──────────────────────────────────────────────────────────
 const BOTTOM_STATS = [
-  { label: "DIRECT REV",  value: "$9,840",   color: "text-foreground" },
-  { label: "AFFILIATE",   value: "$4,210",   color: "text-foreground" },
+  { label: "DIRECT REV",  value: "$9,840",   color: "text-slate-900" },
+  { label: "AFFILIATE",   value: "$4,210",   color: "text-slate-900" },
   { label: "GROWTH",      value: "+14.2%",   color: "text-[#03DAC6]"  },
 ];
 
@@ -72,30 +72,30 @@ export function DashboardPreviewSection() {
 
         {/* ── Left copy ── */}
         <div className="flex flex-col gap-7">
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">
+          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#6200EE]">
             The Future of Finance
           </span>
 
           <h2
-            className="font-serif font-extrabold leading-[1.05] text-foreground"
+            className="font-serif font-extrabold leading-[1.05] text-slate-900"
             style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)" }}
           >
             Own Your<br />Income Stream
           </h2>
 
-          <p className="text-muted-foreground text-base leading-relaxed max-w-sm">
+          <p className="text-slate-600 text-base leading-relaxed max-w-sm">
             Track brand deals, affiliate links, and consulting revenue
             in real-time. Precision management for the modern creative professional.
           </p>
 
           <div className="flex flex-wrap gap-3">
             <Link to="/sign-up">
-              <Button className="rounded-xl px-7 h-11 font-semibold">
+              <Button className="bg-[#6200EE] text-white hover:bg-[#6200EE]/90 rounded-xl px-7 h-11 font-semibold">
                 Explore Dashboard
               </Button>
             </Link>
             <Link to="/pricing">
-              <Button variant="outline" className="rounded-xl px-7 h-11 font-semibold">
+              <Button variant="outline" className="rounded-xl px-7 h-11 font-semibold bg-white text-slate-900 hover:bg-slate-50 border-slate-200">
                 View Sample Report
               </Button>
             </Link>
@@ -105,8 +105,8 @@ export function DashboardPreviewSection() {
           <div className="flex gap-10 pt-2">
             {HERO_STATS.map((s) => (
               <div key={s.label} className="flex flex-col gap-0.5">
-                <span className="text-3xl font-extrabold text-foreground tabular-nums">{s.value}</span>
-                <span className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground">{s.label}</span>
+                <span className="text-3xl font-extrabold text-slate-900 tabular-nums">{s.value}</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">{s.label}</span>
               </div>
             ))}
           </div>
@@ -129,7 +129,7 @@ export function DashboardPreviewSection() {
                 <span className="w-3 h-3 rounded-full" style={{ background: "#03DAC6" }} />
                 <span className="w-3 h-3 rounded-full bg-border" />
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-lg">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 px-3 py-1 rounded-lg">
                 <CalendarDays className="h-3.5 w-3.5" />
                 Aug 2024
               </div>
@@ -163,8 +163,8 @@ export function DashboardPreviewSection() {
                     </svg>
                     {/* Center label */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-lg font-extrabold text-foreground tabular-nums">$18.2k</span>
-                      <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-semibold">Total Profit</span>
+                      <span className="text-lg font-extrabold text-slate-900 tabular-nums">$18.2k</span>
+                      <span className="text-[9px] uppercase tracking-widest text-slate-500 font-semibold">Total Profit</span>
                     </div>
                   </div>
                 </div>
@@ -185,14 +185,14 @@ export function DashboardPreviewSection() {
 
               {/* Right: collab list */}
               <div className="p-5 flex flex-col gap-3">
-                <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-muted-foreground">
+                <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-slate-500">
                   Recent Collabs
                 </p>
 
                 {COLLABS.map((c) => (
-                  <div key={c.name} className="bg-muted/20 rounded-xl p-3 flex flex-col gap-1.5 border border-border/40">
+                  <div key={c.name} className="bg-slate-50 rounded-xl p-3 flex flex-col gap-1.5 border border-slate-100">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-bold text-foreground leading-tight">{c.name}</span>
+                      <span className="text-xs font-bold text-slate-900 leading-tight">{c.name}</span>
                       <span
                         className="text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
                         style={c.badgeColor}
@@ -200,18 +200,18 @@ export function DashboardPreviewSection() {
                         {c.badge}
                       </span>
                     </div>
-                    <span className="text-sm font-extrabold text-foreground tabular-nums">{c.amount}</span>
-                    <span className="text-[9px] font-semibold tracking-widest uppercase text-muted-foreground">{c.type}</span>
+                    <span className="text-sm font-extrabold text-slate-900 tabular-nums">{c.amount}</span>
+                    <span className="text-[9px] font-semibold tracking-widest uppercase text-slate-500">{c.type}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Bottom stats bar */}
-            <div className="grid grid-cols-3 divide-x divide-border/50 border-t border-border/50 bg-muted/20">
+            <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50">
               {BOTTOM_STATS.map((s) => (
                 <div key={s.label} className="px-4 py-3 flex flex-col gap-0.5">
-                  <span className="text-[9px] font-bold tracking-widest uppercase text-muted-foreground">{s.label}</span>
+                  <span className="text-[9px] font-bold tracking-widest uppercase text-slate-500">{s.label}</span>
                   <span className={`text-base font-extrabold tabular-nums ${s.color}`}>{s.value}</span>
                 </div>
               ))}

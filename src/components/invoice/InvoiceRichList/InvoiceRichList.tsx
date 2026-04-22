@@ -25,8 +25,9 @@ export function InvoiceRichList({
   onRefresh,
   emptyMessage = "No invoices match your filters.",
 }: InvoiceRichListProps) {
-
-  const [localStatuses, setLocalStatuses] = useState<Record<string, InvoiceStatus>>({});
+  const [localStatuses, setLocalStatuses] = useState<
+    Record<string, InvoiceStatus>
+  >({});
 
   const [saving, setSaving] = useState<Set<string>>(new Set());
 
@@ -34,7 +35,10 @@ export function InvoiceRichList({
     return localStatuses[inv.id] ?? inv.status ?? "pending";
   }
 
-  async function handleStatusChange(inv: InvoicesWithTotals, next: InvoiceStatus) {
+  async function handleStatusChange(
+    inv: InvoicesWithTotals,
+    next: InvoiceStatus,
+  ) {
     try {
       const prev = getStatus(inv);
       if (prev === next) return;
@@ -44,7 +48,11 @@ export function InvoiceRichList({
 
       const { success, error } = await updateInvoiceStatus(inv.id, next);
 
-      setSaving((s) => { const n = new Set(s); n.delete(inv.id); return n; });
+      setSaving((s) => {
+        const n = new Set(s);
+        n.delete(inv.id);
+        return n;
+      });
 
       if (!success) {
         setLocalStatuses((s) => ({ ...s, [inv.id]: prev }));
@@ -55,7 +63,11 @@ export function InvoiceRichList({
       }
     } catch (err: any) {
       toast.error(`Exception triggered: ${err.message || err}`);
-      setSaving((s) => { const n = new Set(s); n.delete(inv.id); return n; });
+      setSaving((s) => {
+        const n = new Set(s);
+        n.delete(inv.id);
+        return n;
+      });
     }
   }
 
@@ -89,7 +101,9 @@ export function InvoiceRichList({
 
         {/* Content headers aligned to row grid */}
         <div className="flex-1 min-w-0">Company</div>
-        <div className="hidden md:block w-[100px] flex-shrink-0">Created Date</div>
+        <div className="hidden md:block w-[100px] flex-shrink-0">
+          Created Date
+        </div>
         <div className="hidden lg:block w-[100px] flex-shrink-0">Due Date</div>
         <div className="hidden sm:block w-[100px] flex-shrink-0">Invoice #</div>
         <div className="w-[100px] flex-shrink-0 text-right pr-4">Total</div>

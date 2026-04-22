@@ -1,18 +1,21 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Header } from "../components/invoice/Header";
 import { EditInvoiceModal } from "@/components/invoice/EditInvoiceModal";
 import { InvoiceRichList } from "@/components/invoice/InvoiceRichList/InvoiceRichList";
 import type { InvoicesWithTotals } from "@/types/invoice.types";
-import { fetchInvoicesWithTotals } from "@/services/invoice.services";
+import { useFetchInvoicesWithTotals } from "@/api/invoice.api";
 import { Input } from "@/components/ui/input";
 
 export default function Invoices() {
-  const [invoices, setInvoices] = useState<InvoicesWithTotals[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const {
+    data: invoicesData,
+    isLoading,
+    refetch,
+  } = useFetchInvoicesWithTotals();
+  const invoices = (invoicesData as InvoicesWithTotals[]) || [];
 
-  const [editingInvoice, setEditingInvoice] = useState<InvoicesWithTotals | null>(null);
+  const [editingInvoice, setEditingInvoice] =
+    useState<InvoicesWithTotals | null>(null);
 
   // Filter States
   const [filterId, setFilterId] = useState("");
@@ -22,30 +25,11 @@ export default function Invoices() {
   const [filterMaxTotal, setFilterMaxTotal] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setIsLoading(true);
-        const fetched = await fetchInvoicesWithTotals();
-        if (cancelled) return;
-        setInvoices(fetched || []);
-      } catch (e) {
-        if (!cancelled) console.error("Failed to load invoices", e);
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshTrigger]);
-
-
   const filteredInvoices = useMemo(() => {
     return invoices.filter((inv) => {
       // 1. Invoice ID Match
-      if (filterId && !String(inv.invoice_number).includes(filterId)) return false;
+      if (filterId && !String(inv.invoice_number).includes(filterId))
+        return false;
 
       // 2. Date Match
       const dateStr = new Date(inv.created_at).toLocaleDateString();
@@ -60,15 +44,25 @@ export default function Invoices() {
       }
 
       // 4. Totals Boundary logic
-      if (filterMinTotal && inv.total_amount_owed < parseFloat(filterMinTotal)) return false;
-      if (filterMaxTotal && inv.total_amount_owed > parseFloat(filterMaxTotal)) return false;
+      if (filterMinTotal && inv.total_amount_owed < parseFloat(filterMinTotal))
+        return false;
+      if (filterMaxTotal && inv.total_amount_owed > parseFloat(filterMaxTotal))
+        return false;
 
       // 5. Status Enum Match
       if (filterStatus !== "all" && inv.status !== filterStatus) return false;
 
       return true;
     });
-  }, [invoices, filterId, filterDate, filterClient, filterMinTotal, filterMaxTotal, filterStatus]);
+  }, [
+    invoices,
+    filterId,
+    filterDate,
+    filterClient,
+    filterMinTotal,
+    filterMaxTotal,
+    filterStatus,
+  ]);
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-4 py-8">
@@ -90,27 +84,61 @@ export default function Invoices() {
         {/* Filter Bar Component */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-3 bg-card p-4 rounded-xl border border-border shadow-sm items-end">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Invoice ID</label>
-            <Input placeholder="Search ID..." value={filterId} onChange={(e) => setFilterId(e.target.value)} />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Invoice ID
+            </label>
+            <Input
+              placeholder="Search ID..."
+              value={filterId}
+              onChange={(e) => setFilterId(e.target.value)}
+            />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Date</label>
-            <Input placeholder="MM/DD/YYYY" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Date
+            </label>
+            <Input
+              placeholder="MM/DD/YYYY"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+            />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Client</label>
-            <Input placeholder="Search client..." value={filterClient} onChange={(e) => setFilterClient(e.target.value)} />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Client
+            </label>
+            <Input
+              placeholder="Search client..."
+              value={filterClient}
+              onChange={(e) => setFilterClient(e.target.value)}
+            />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Min Total</label>
-            <Input type="number" placeholder="$0.00" value={filterMinTotal} onChange={(e) => setFilterMinTotal(e.target.value)} />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Min Total
+            </label>
+            <Input
+              type="number"
+              placeholder="$0.00"
+              value={filterMinTotal}
+              onChange={(e) => setFilterMinTotal(e.target.value)}
+            />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Max Total</label>
-            <Input type="number" placeholder="$0.00" value={filterMaxTotal} onChange={(e) => setFilterMaxTotal(e.target.value)} />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Max Total
+            </label>
+            <Input
+              type="number"
+              placeholder="$0.00"
+              value={filterMaxTotal}
+              onChange={(e) => setFilterMaxTotal(e.target.value)}
+            />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Status</label>
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Status
+            </label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -127,7 +155,7 @@ export default function Invoices() {
         <InvoiceRichList
           invoices={filteredInvoices}
           isLoading={isLoading}
-          onRefresh={() => setRefreshTrigger((t) => t + 1)}
+          onRefresh={() => refetch()}
           onEdit={setEditingInvoice}
         />
       </div>
@@ -136,7 +164,7 @@ export default function Invoices() {
         isOpen={!!editingInvoice}
         onClose={() => setEditingInvoice(null)}
         invoice={editingInvoice}
-        onSaveSuccess={() => setRefreshTrigger(t => t + 1)}
+        onSaveSuccess={() => refetch()}
       />
     </div>
   );

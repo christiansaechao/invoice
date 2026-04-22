@@ -29,7 +29,7 @@ export function LineItemsForm({
   const [showDiscount, setShowDiscount] = useState(discountValue > 0);
 
   return (
-    <div className="bg-card">
+    <div className="bg-card p-4 rounded-lg">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Line Items

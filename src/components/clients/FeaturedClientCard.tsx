@@ -81,7 +81,7 @@ export function FeaturedClientCard({
             <div>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Total Paid</p>
               <p className="text-3xl font-bold text-foreground">
-                {client.revenue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+                {(client.revenue / 100).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
               </p>
             </div>
             <div>

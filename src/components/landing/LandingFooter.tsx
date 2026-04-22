@@ -10,22 +10,22 @@ export function LandingFooter() {
     <footer className="flex flex-col">
 
       {/* ── Pre-footer CTA card ── */}
-      <div className="px-6 md:px-12 py-16 bg-muted/20">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden shadow-xl border border-border/50">
+      <div className="px-6 md:px-12 py-16 bg-[#F8FAFC]">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden shadow-xl border border-slate-100">
 
           {/* Left panel — copy */}
           <div className="bg-white p-10 flex flex-col gap-5">
-            <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-primary">
+            <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-[#6200EE]">
               Creative Studio Dashboard
             </span>
 
-            <h2 className="text-3xl md:text-4xl font-serif font-extrabold text-foreground leading-tight">
+            <h2 className="text-3xl md:text-4xl font-serif font-extrabold text-slate-900 leading-tight">
               The future of{" "}
-              <span className="text-primary">creator<br />finance</span>{" "}
+              <span className="text-[#6200EE]">creator<br />finance</span>{" "}
               is here.
             </h2>
 
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+            <p className="text-sm text-slate-500 leading-relaxed max-w-xs">
               Manage your income streams, generate high-end receipts, and build
               a creative empire with tools designed for the modern influencer.
             </p>
@@ -66,15 +66,14 @@ export function LandingFooter() {
       >
         {/* Big CTA headline */}
         <div className="text-center flex flex-col gap-8 items-center">
-          <h2 className="text-4xl md:text-5xl font-serif font-extrabold leading-tight max-w-xl">
+          <h2 className="text-4xl md:text-5xl font-serif font-extrabold leading-tight max-w-xl text-white">
             Stop sending boring PDFs.<br />Start sending Receipts.
           </h2>
 
           <Link to="/sign-up">
             <Button
               size="lg"
-              className="rounded-full px-10 h-12 text-base font-bold text-foreground"
-              style={{ background: "#03DAC6", color: "#121212" }}
+              className="rounded-full px-10 h-12 text-base font-bold bg-[#03DAC6] text-[#121212] hover:bg-[#03DAC6]/90 border-none"
             >
               Create Your First Receipt
             </Button>
