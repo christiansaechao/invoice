@@ -1,19 +1,19 @@
-import { cn } from "@/utils/utils";
-import { supabase } from "@/lib/supabase-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { Landmark, ShieldCheck, BarChart3, Globe2, LogIn } from "lucide-react";
+import { cn } from '@/utils/utils';
+import { supabase } from '@/lib/supabase-client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useState } from 'react';
+import { Landmark, ShieldCheck, BarChart3, Globe2, LogIn } from 'lucide-react';
 
 export function SignUpForm({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [firstname, setFirstName] = useState("");
-  const [lastname, setLastName] = useState("");
+}: React.ComponentPropsWithoutRef<'div'>) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstname, setFirstName] = useState('');
+  const [lastname, setLastName] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +24,7 @@ export function SignUpForm({
     setError(null);
 
     if (!termsAccepted) {
-      setError("You must accept the terms and conditions.");
+      setError('You must accept the terms and conditions.');
       return;
     }
 
@@ -44,7 +44,7 @@ export function SignUpForm({
       if (error) throw error;
       setSuccess(true);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +63,7 @@ export function SignUpForm({
           </p>
           <Button
             className="w-full bg-zinc-900 text-white"
-            onClick={() => (location.href = "/login")}
+            onClick={() => (location.href = '/login')}
           >
             Back to Login
           </Button>
@@ -75,7 +75,7 @@ export function SignUpForm({
   return (
     <div
       className={cn(
-        "min-h-screen bg-zinc-50 flex flex-col font-sans text-zinc-900",
+        'min-h-screen bg-zinc-50 flex flex-col font-sans text-zinc-900',
         className,
       )}
       {...props}
@@ -122,8 +122,8 @@ export function SignUpForm({
               Create, Save, and Send Invoices in Minutes
             </h1>
             <p className="text-lg text-zinc-600 font-light italic">
-              Reciept helps you create, update, and store invoices—then
-              export a clean PDF whenever you need it.
+              Reciept helps you create, update, and store invoices—then export a
+              clean PDF whenever you need it.
             </p>
           </div>
 
@@ -281,11 +281,11 @@ export function SignUpForm({
                   htmlFor="terms"
                   className="text-xs text-zinc-500 leading-normal"
                 >
-                  I agree to the{" "}
+                  I agree to the{' '}
                   <a href="#" className="underline text-zinc-900 font-medium">
                     Terms of Service
-                  </a>{" "}
-                  and{" "}
+                  </a>{' '}
+                  and{' '}
                   <a href="#" className="underline text-zinc-900 font-medium">
                     Privacy Policy
                   </a>
@@ -300,11 +300,11 @@ export function SignUpForm({
               )}
 
               <Button
-                className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-medium tracking-wide uppercase text-xs"
+                className="w-full h-12 bg-zinc-900 hover:bg-zinc-700 text-white font-medium tracking-wide uppercase text-xs cursor-pointer"
                 type="submit"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating Account..." : "Create Account"}
+                {isLoading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
 
@@ -320,8 +320,9 @@ export function SignUpForm({
             </div>
 
             <Button
-              variant="outline"
-              className="w-full h-12 border-zinc-200 text-zinc-900 hover:bg-zinc-50 font-medium flex items-center justify-center gap-2"
+              // variant="outline"
+              // className="w-full h-12 border-zinc-200 text-zinc-900 hover:bg-zinc-50 font-medium flex items-center justify-center gap-2"
+              className="w-full h-12 border-zinc-200 bg-white shadow-sm cursor-pointer hover:bg-zinc-50 hover:text-[#6200EE] hover:scale-102 active:bg-zinc-100"
             >
               <LogIn className="h-4 w-4" />
               Continue with Google
@@ -334,8 +335,7 @@ export function SignUpForm({
       <footer className="border-t border-zinc-200 bg-white py-8">
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] uppercase tracking-widest font-medium text-zinc-400">
           <p>
-            &copy; {new Date().getFullYear()} Reciept Inc. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} Reciept Inc. All rights reserved.
           </p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-zinc-600">
