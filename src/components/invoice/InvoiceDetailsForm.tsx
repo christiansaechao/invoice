@@ -37,7 +37,7 @@ export function InvoiceDetailsForm({
   dueDate,
   setDueDate,
   templateId,
-  setTemplateId
+  setTemplateId,
 }: InvoiceDetailsFormProps) {
   const { session } = useUser();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -49,14 +49,14 @@ export function InvoiceDetailsForm({
 
   const handleQuickAdd = async () => {
     if (!qaName.trim()) {
-       toast.error("Company name is required");
-       return;
+      toast.error("Company name is required");
+      return;
     }
     try {
       const data = await createClientMutation.mutateAsync({
-         company_name: qaName,
-         contact_email: qaEmail,
-         user_id: session?.user?.id
+        company_name: qaName,
+        contact_email: qaEmail,
+        user_id: session?.user?.id,
       });
       onClientCreated(data);
       setShowQuickAdd(false);
@@ -70,7 +70,9 @@ export function InvoiceDetailsForm({
 
   return (
     <div className="min-w-0">
-      <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6">Logistics</h2>
+      <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6">
+        Logistics
+      </h2>
       <div className="flex flex-col gap-4 min-w-0">
         {/* Client Selector */}
         <div className="flex flex-col gap-2 min-w-0">
@@ -84,31 +86,58 @@ export function InvoiceDetailsForm({
               className="h-6 px-2 text-xs text-primary"
               onClick={() => setShowQuickAdd(!showQuickAdd)}
             >
-              {showQuickAdd ? <X className="h-3 w-3 mr-1" /> : <Plus className="h-3 w-3 mr-1" />} 
+              {showQuickAdd ? (
+                <X className="h-3 w-3 mr-1" />
+              ) : (
+                <Plus className="h-3 w-3 mr-1" />
+              )}
               {showQuickAdd ? "Cancel" : "Quick Add"}
             </Button>
           </div>
-          
+
           {!canAddClient && !showQuickAdd && (
             <p className="text-[9px] text-amber-500 font-bold uppercase tracking-tight">
-              Limit reached: {activeClientCount}/{limits.activeClients} active slots used. Archive a client to free up space.
+              Limit reached: {activeClientCount}/{limits.activeClients} active
+              slots used. Archive a client to free up space.
             </p>
           )}
-          
+
           {showQuickAdd ? (
-             <div className="flex flex-col gap-3 p-4 bg-primary/[0.03] border border-primary/20 rounded-md animate-in slide-in-from-top-2 fade-in">
-                 <div className="flex flex-col gap-1.5">
-                    <Label className="text-xs text-primary">Company Name</Label>
-                    <Input className="h-8" value={qaName} onChange={e => setQaName(e.target.value)} placeholder="Acme Corp" />
-                 </div>
-                 <div className="flex flex-col gap-1.5">
-                    <Label className="text-xs text-primary">Contact Email (Optional)</Label>
-                    <Input className="h-8" value={qaEmail} onChange={e => setQaEmail(e.target.value)} placeholder="contact@acme.com" />
-                 </div>
-                 <Button size="sm" className="w-full mt-1 h-8" onClick={handleQuickAdd} disabled={createClientMutation.isPending}>
-                    {createClientMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Plus className="h-3 w-3 mr-2" />} Save & Select
-                 </Button>
-             </div>
+            <div className="flex flex-col gap-3 p-4 bg-primary/[0.03] border border-primary/20 rounded-md animate-in slide-in-from-top-2 fade-in">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-primary">Company Name</Label>
+                <Input
+                  className="h-8"
+                  value={qaName}
+                  onChange={(e) => setQaName(e.target.value)}
+                  placeholder="Acme Corp"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-primary">
+                  Contact Email (Optional)
+                </Label>
+                <Input
+                  className="h-8"
+                  value={qaEmail}
+                  onChange={(e) => setQaEmail(e.target.value)}
+                  placeholder="contact@acme.com"
+                />
+              </div>
+              <Button
+                size="sm"
+                className="w-full mt-1 h-8"
+                onClick={handleQuickAdd}
+                disabled={createClientMutation.isPending}
+              >
+                {createClientMutation.isPending ? (
+                  <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                ) : (
+                  <Plus className="h-3 w-3 mr-2" />
+                )}{" "}
+                Save & Select
+              </Button>
+            </div>
           ) : (
             <select
               id="client-select"
@@ -171,8 +200,6 @@ export function InvoiceDetailsForm({
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
         </div>
-
-
       </div>
     </div>
   );
