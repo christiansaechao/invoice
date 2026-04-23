@@ -19,8 +19,6 @@ type InvoiceDetailsFormProps = {
   setCurrency: (code: string) => void;
   dueDate: string;
   setDueDate: (date: string) => void;
-  templateId?: string;
-  setTemplateId?: (id: string) => void;
 };
 
 export function InvoiceDetailsForm({
@@ -33,8 +31,6 @@ export function InvoiceDetailsForm({
   setCurrency,
   dueDate,
   setDueDate,
-  templateId,
-  setTemplateId,
 }: InvoiceDetailsFormProps) {
   const [showClientModal, setShowClientModal] = useState(false);
   const { canAddClient, activeClientCount, limits } = usePlanLimits();
@@ -44,6 +40,7 @@ export function InvoiceDetailsForm({
       <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6">
         Logistics
       </h2>
+
       <div className="flex flex-col gap-4 min-w-0">
         {/* Client Selector */}
         <div className="flex flex-col gap-2 min-w-0">
