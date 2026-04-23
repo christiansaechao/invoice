@@ -1,9 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Loader2 } from "lucide-react";
-import {
-  fetchInvoicesWithTotals,
-  fetchClients,
-} from "@/services/invoice.services";
+import { useFetchInvoicesWithTotals } from "@/api/invoice.api";
+import { useFetchClients } from "@/api/client.api";
 import { useFetchProfile } from "@/api/user.api";
 import type { InvoicesWithTotals } from "@/types/invoice.types";
 
@@ -65,31 +63,11 @@ function buildChartData(
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function DashboardHome() {
-  const [invoices, setInvoices] = useState<InvoicesWithTotals[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { data: invoices = [], isLoading: isLoadingInvoices } = useFetchInvoicesWithTotals();
+  const { data: clients = [], isLoading: isLoadingClients } = useFetchClients();
+  const isLoading = isLoadingInvoices || isLoadingClients;
+  
   const [chartGrouping, setChartGrouping] = useState<"day" | "month">("day");
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [invData, clientData] = await Promise.all([
-          fetchInvoicesWithTotals(),
-          fetchClients(),
-        ]);
-        setInvoices(invData || []);
-        setClients(clientData || []);
-      } catch (err) {
-        console.error("Failed to load dashboard data", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadData();
-  }, [refreshTrigger]);
-
-  const refresh = () => setRefreshTrigger((t) => t + 1);
 
   // ── Derived data ──────────────────────────────────────────────────────────
   const paidInvoices = useMemo(
@@ -173,7 +151,7 @@ export function DashboardHome() {
 
         {/* Right: sidebar cards */}
         <div className="xl:col-span-1 flex flex-col gap-5 min-w-0">
-          <QuickEditInvoice invoices={invoices} onSaveSuccess={refresh} />
+          <QuickEditInvoice invoices={invoices} />
           <RevenueBreakdownCard
             breakdown={breakdown}
             clientCount={clients.length}

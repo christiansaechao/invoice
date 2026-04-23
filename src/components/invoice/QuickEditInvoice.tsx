@@ -9,9 +9,9 @@ import {
 import { LineItemsForm } from "./LineItemsForm";
 import { useLineItems } from "@/hooks/useLineItems";
 import {
-  fetchEntriesByInvoiceId,
-  updateInvoiceEntries,
-} from "@/services/invoice.services";
+  useFetchEntriesByInvoiceId,
+  useUpdateInvoiceEntries,
+} from "@/api/invoice.api";
 import { Button } from "@/components/ui/button";
 import { Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,15 +19,12 @@ import type { InvoicesWithTotals } from "@/types/invoice.types";
 
 export function QuickEditInvoice({
   invoices,
-  onSaveSuccess,
 }: {
   invoices: InvoicesWithTotals[];
-  onSaveSuccess: () => void;
 }) {
   const [selectedCompany, setSelectedCompany] = useState<string>("");
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const updateInvoiceEntriesMutation = useUpdateInvoiceEntries();
 
   const {
     rows,
@@ -85,49 +82,38 @@ export function QuickEditInvoice({
   const activeInvoice =
     invoices.find((inv) => inv.id === selectedInvoiceId) || null;
 
+  const { data: entries = [], isLoading } = useFetchEntriesByInvoiceId(
+    activeInvoice?.id || ""
+  );
+
   useEffect(() => {
-    if (!activeInvoice) return;
-    let cancelled = false;
-
-    (async () => {
-      setIsLoading(true);
-      const entries = await fetchEntriesByInvoiceId(activeInvoice.id);
-      if (!cancelled) {
-        // Sort entries strictly in reverse chronological order for this dashboard module layout
-        const sortedEntries = entries.sort(
-          (a: any, b: any) =>
-            new Date(b.work_date).getTime() - new Date(a.work_date).getTime(),
-        );
-        setRows(sortedEntries.length > 0 ? sortedEntries : []);
-        setIsLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeInvoice?.id, setRows]);
+    if (entries) {
+      const sortedEntries = [...entries].sort(
+        (a: any, b: any) =>
+          new Date(b.work_date).getTime() - new Date(a.work_date).getTime(),
+      );
+      setRows(sortedEntries.length > 0 ? sortedEntries : []);
+    }
+  }, [entries, setRows]);
 
   const handleSave = async () => {
     if (!activeInvoice) return;
-    setIsSaving(true);
 
     // Sleep 1 tick to flush calculation state
     setTimeout(async () => {
-      const { success, error } = await updateInvoiceEntries(
-        activeInvoice.id,
-        rows,
-      );
-      setIsSaving(false);
-
-      if (success) {
+      try {
+        await updateInvoiceEntriesMutation.mutateAsync({
+          invoiceId: activeInvoice.id,
+          rows,
+        });
         toast.success("Invoice entries updated successfully!");
-        onSaveSuccess();
-      } else {
-        toast.error(error || "Failed to update entries.");
+      } catch (error: any) {
+        toast.error(error.message || "Failed to update entries.");
       }
     }, 50);
   };
+
+  const isSaving = updateInvoiceEntriesMutation.isPending;
 
   if (!invoices || invoices.length === 0) {
     return (

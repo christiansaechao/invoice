@@ -9,7 +9,7 @@ import { InvoiceDetailsForm } from "./InvoiceDetailsForm";
 import { LineItemsForm } from "./LineItemsForm";
 import { Button } from "@/components/ui/button";
 import { Save, Loader2, Printer } from "lucide-react";
-import { fetchClients } from "@/services/invoice.services";
+import { useFetchClients } from "@/api/client.api";
 import {
   useFetchEntriesByInvoiceId,
   useUpdateFullInvoice,
@@ -31,12 +31,10 @@ export function EditInvoiceModal({
   isOpen,
   onClose,
   invoice,
-  onSaveSuccess,
 }: {
   isOpen: boolean;
   onClose: () => void;
   invoice: InvoicesWithTotals | null;
-  onSaveSuccess: () => void;
 }) {
   // Generic states mapping the builder
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -44,10 +42,10 @@ export function EditInvoiceModal({
   const [dueDate, setDueDate] = useState("");
   const [templateId, setTemplateId] = useState("standard");
   const [currency, setCurrency] = useState("USD");
-  const [clients, setClients] = useState<any[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const { profile } = useUser();
   const { data: templates } = useTemplates();
+  const { data: clients = [] } = useFetchClients();
 
   const {
     rows,
@@ -68,11 +66,6 @@ export function EditInvoiceModal({
     useUpdateFullInvoice();
 
   // Initialization Hydrating Hooks
-  useEffect(() => {
-    if (isOpen) {
-      fetchClients().then((data) => setClients(data || []));
-    }
-  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && invoice) {
@@ -106,7 +99,6 @@ export function EditInvoiceModal({
   const billToOverride = getBillToOverride(selectedClient);
 
   const handleClientCreated = (newClient: any) => {
-    setClients((prev) => [...prev, newClient]);
     setSelectedClientId(newClient.id);
   };
 
@@ -134,7 +126,6 @@ export function EditInvoiceModal({
 
       if (res.success) {
         toast.success("Successfully updated invoice.");
-        onSaveSuccess();
         onClose();
       } else {
         toast.error(res.error || "Failed to update record.");

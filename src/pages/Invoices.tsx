@@ -10,7 +10,6 @@ export default function Invoices() {
   const {
     data: invoicesData,
     isLoading,
-    refetch,
   } = useFetchInvoicesWithTotals();
   const invoices = (invoicesData as InvoicesWithTotals[]) || [];
 
@@ -155,7 +154,6 @@ export default function Invoices() {
         <InvoiceRichList
           invoices={filteredInvoices}
           isLoading={isLoading}
-          onRefresh={() => refetch()}
           onEdit={setEditingInvoice}
         />
       </div>
@@ -164,7 +162,6 @@ export default function Invoices() {
         isOpen={!!editingInvoice}
         onClose={() => setEditingInvoice(null)}
         invoice={editingInvoice}
-        onSaveSuccess={() => refetch()}
       />
     </div>
   );

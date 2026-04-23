@@ -109,6 +109,8 @@ export const useUpdateInvoiceEntries = () => {
       queryClient.invalidateQueries({
         queryKey: ["entries", variables.invoiceId],
       });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices-with-totals"] });
     },
   });
 };

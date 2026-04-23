@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchClients } from "@/services/invoice.services";
+import { useFetchClients } from "@/api/client.api";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CreateClientModal } from "@/components/invoice/CreateClientModal";
@@ -11,22 +11,11 @@ export function DefaultClientSection() {
   // React Query
   const { data: userSettings, isLoading: loadingSettings } = useFetchUserSettings();
   const updateDefaultClientMutation = useUpdateUserSettings();
+  const { data: clients = [], isLoading: loadingClients, refetch: loadClients } = useFetchClients();
 
-  const [clients, setClients] = useState<any[]>([]);
-  const [loadingClients, setLoadingClients] = useState(true);
   const [selectedId, setSelectedId] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const activeClient = clients.find(c => c.id === selectedId) || null;
-
-  const loadClients = async () => {
-    setLoadingClients(true);
-    try {
-      const data = await fetchClients();
-      setClients(data || []);
-    } finally {
-      setLoadingClients(false);
-    }
-  };
+  const activeClient = clients.find((c: any) => c.id === selectedId) || null;
 
   const handleSave = async () => {
     if (!selectedId || !activeClient) {
@@ -43,14 +32,9 @@ export function DefaultClientSection() {
   };
 
   const handleClientCreated = (newClient: any) => {
-    setClients(prev => [...prev, newClient]);
     setSelectedId(newClient.id);
     setShowCreateModal(false);
   };
-
-  useEffect(() => {
-    loadClients();
-  }, []);
 
   useEffect(() => {
     if (userSettings?.default_client_id) {

@@ -3,9 +3,11 @@ import { InvoiceDetailsForm } from "../components/invoice/InvoiceDetailsForm";
 import { NudgeControls } from "../components/invoice/NudgeControls";
 import { LineItemsForm } from "../components/invoice/LineItemsForm";
 import { InvoiceActionButtons } from "../components/invoice/InvoiceActionButtons";
-import { saveInvoice, fetchClients, sendInvoiceEmail } from "@/services/invoice.services";
+import { sendInvoiceEmail } from "@/services/invoice.services";
 import { toast } from "sonner";
-import { getCurrentSubscription } from "@/services/subscription.services";
+import { useFetchClients } from "@/api/client.api";
+import { useSaveInvoice } from "@/api/invoice.api";
+import { useCurrentSubscription } from "@/api/subscription.api";
 import {
   MAGIC_CREDIT_LIMITS,
   getDaysUntilReset,
@@ -43,7 +45,7 @@ export function NewInvoice() {
   const [dueDate, setDueDate] = useState("");
 
   // Client Selection State
-  const [clients, setClients] = useState<any[]>([]);
+  const { data: clients = [] } = useFetchClients();
   const [selectedClientId, setSelectedClientId] = useState<string>("");
 
   // Invoice Template Local State
@@ -60,28 +62,21 @@ export function NewInvoice() {
   const [daysUntilReset, setDaysUntilReset] = useState<number>(0);
   const [isSending, setIsSending] = useState(false);
 
+  const { data: subscription } = useCurrentSubscription();
+
   // NEW: Fetch user's credits on mount
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    const fetchCredits = async () => {
-      try {
-        const subscription = await getCurrentSubscription();
-        if (subscription && typeof subscription.magic_credits === "number") {
-          setCredits(subscription.magic_credits || 0);
-          setTierLimit(
-            MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ??
-              MAGIC_CREDIT_LIMITS.starter,
-          );
-          setDaysUntilReset(getDaysUntilReset(subscription.credits_last_reset));
-        }
-      } catch (e) {
-        console.error("Failed to fetch subscription credits:", e);
-      }
-    };
-
-    fetchCredits();
-  }, [session?.user?.id]);
+    if (subscription && typeof subscription.magic_credits === "number") {
+      setCredits(subscription.magic_credits || 0);
+      setTierLimit(
+        MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ??
+          MAGIC_CREDIT_LIMITS.starter,
+      );
+      setDaysUntilReset(getDaysUntilReset(subscription.credits_last_reset));
+    }
+  }, [session?.user?.id, subscription]);
 
   const { data: userSettings } = useFetchUserSettings();
   const { defaultTemplateId, setDefaultTemplateId } = useSettings();
@@ -198,21 +193,12 @@ export function NewInvoice() {
     }
   }
 
-  useEffect(() => {
-    fetchClients()
-      .then((data) => {
-        setClients(data || []);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch clients", err);
-      });
-  }, []);
+  const saveInvoiceMutation = useSaveInvoice();
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const billToOverride = getBillToOverride(selectedClient);
 
   const handleClientCreated = (newClient: any) => {
-    setClients((prev) => [...prev, newClient]);
     setSelectedClientId(newClient.id);
   };
 
@@ -231,17 +217,23 @@ export function NewInvoice() {
       toast("Please select a client before saving the invoice.");
       return;
     }
-    const result = await saveInvoice(rows, selectedClientId, date, dueDate, {
-      subtotal: toSubUnits(subtotal),
-      total_amount: toSubUnits(total),
-      currency: currency,
-      discount_value: 0,
-      tax_amount: 0,
-      template_id: templateId,
-      auto_nudge: nudgeConfig.enabled,
-      nudge_profile: nudgeConfig.profile,
-      work_week_only: nudgeConfig.workWeekOnly,
-      doc_type: documentType,
+    const result = await saveInvoiceMutation.mutateAsync({
+      rows,
+      clientId: selectedClientId,
+      invoiceDate: date,
+      dueDate,
+      invoiceDetails: {
+        subtotal: toSubUnits(subtotal),
+        total_amount: toSubUnits(total),
+        currency: currency,
+        discount_value: 0,
+        tax_amount: 0,
+        template_id: templateId,
+        auto_nudge: nudgeConfig.enabled,
+        nudge_profile: nudgeConfig.profile,
+        work_week_only: nudgeConfig.workWeekOnly,
+        doc_type: documentType,
+      },
     });
 
     toast(result.message);

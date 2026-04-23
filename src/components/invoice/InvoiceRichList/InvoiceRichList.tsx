@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import type { InvoicesWithTotals, InvoiceStatus } from "@/types/invoice.types";
-import { updateInvoiceStatus } from "@/services/invoice.services";
+import { useUpdateInvoiceStatus } from "@/api/invoice.api";
 import { toast } from "sonner";
 import { InvoiceRichListRow } from "./InvoiceRichListRow";
 
@@ -11,8 +11,6 @@ export interface InvoiceRichListProps {
   invoices: InvoicesWithTotals[];
   isLoading?: boolean;
   onEdit: (inv: InvoicesWithTotals) => void;
-  /** Called after a successful Supabase write so the parent can re-fetch */
-  onRefresh: () => void;
   emptyMessage?: string;
 }
 
@@ -22,7 +20,6 @@ export function InvoiceRichList({
   invoices,
   isLoading = false,
   onEdit,
-  onRefresh,
   emptyMessage = "No invoices match your filters.",
 }: InvoiceRichListProps) {
   const [localStatuses, setLocalStatuses] = useState<
@@ -35,6 +32,8 @@ export function InvoiceRichList({
     return localStatuses[inv.id] ?? inv.status ?? "pending";
   }
 
+  const updateInvoiceStatusMutation = useUpdateInvoiceStatus();
+
   async function handleStatusChange(
     inv: InvoicesWithTotals,
     next: InvoiceStatus,
@@ -46,7 +45,10 @@ export function InvoiceRichList({
       setLocalStatuses((s) => ({ ...s, [inv.id]: next }));
       setSaving((s) => new Set(s).add(inv.id));
 
-      const { success, error } = await updateInvoiceStatus(inv.id, next);
+      const { success, error } = await updateInvoiceStatusMutation.mutateAsync({
+        invoiceId: inv.id,
+        status: next,
+      });
 
       setSaving((s) => {
         const n = new Set(s);
@@ -59,7 +61,6 @@ export function InvoiceRichList({
         toast.error(`Backend Error: ${error || "Failed to update db"}`);
       } else {
         toast.success(`Invoice marked as ${next}.`);
-        onRefresh();
       }
     } catch (err: any) {
       toast.error(`Exception triggered: ${err.message || err}`);
