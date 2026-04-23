@@ -62,7 +62,7 @@ export function NewInvoice() {
   const [daysUntilReset, setDaysUntilReset] = useState<number>(0);
   const [isSending, setIsSending] = useState(false);
 
-  const { data: subscription } = useCurrentSubscription();
+  const { data: subscription, refetch: refetchSubscription } = useCurrentSubscription();
 
   // NEW: Fetch user's credits on mount
   useEffect(() => {
@@ -163,15 +163,15 @@ export function NewInvoice() {
       } else {
         // Fallback: refetch subscription credits
         try {
-          const subscription = await getCurrentSubscription();
-          if (subscription && typeof subscription.magic_credits === "number") {
-            setCredits(subscription.magic_credits || 0);
+          const { data: refreshedSub } = await refetchSubscription();
+          if (refreshedSub && typeof refreshedSub.magic_credits === "number") {
+            setCredits(refreshedSub.magic_credits || 0);
             setTierLimit(
-              MAGIC_CREDIT_LIMITS[subscription.tier as SubscriptionTier] ??
+              MAGIC_CREDIT_LIMITS[refreshedSub.tier as SubscriptionTier] ??
                 MAGIC_CREDIT_LIMITS.starter,
             );
             setDaysUntilReset(
-              getDaysUntilReset(subscription.credits_last_reset),
+              getDaysUntilReset(refreshedSub.credits_last_reset),
             );
           }
         } catch (e) {
