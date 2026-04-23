@@ -60,7 +60,7 @@ export const createClient = async (clientData: any) => {
     return { success: false, error: error.message };
   }
 
-  return { success: true, data };
+  return data;
 };
 
 export const fetchEntries = async () => {
