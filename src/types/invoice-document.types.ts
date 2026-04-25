@@ -33,6 +33,7 @@ export type InvoiceDocumentParty = {
 export type InvoiceDocumentTotals = {
   subtotal: number;
   total: number;
+  discountAmt?: number;
   currency: string;
   hourlyRate?: number;
 };

@@ -24,7 +24,9 @@ import { useLineItems } from "@/hooks/useLineItems";
 import type { InvoicesWithTotals } from "@/types/invoice.types";
 import { TemplateRenderer } from "./TemplateRenderer";
 import { useUser } from "@/store/user.store";
+import { useInvoiceWorkspace } from "@/store/invoice.store";
 import { buildInvoiceDocumentData } from "@/utils/invoice-document.utils";
+import type { InvoiceTemplateSlug } from "@/types/invoice-document.types";
 import { useTemplates } from "@/api/templates.api";
 
 export function EditInvoiceModal({
@@ -46,6 +48,7 @@ export function EditInvoiceModal({
   const { profile } = useUser();
   const { data: templates } = useTemplates();
   const { data: clients = [] } = useFetchClients();
+  const { discountMode, setDiscountMode, discountValue, setDiscountValue } = useInvoiceWorkspace();
 
   const {
     rows,
@@ -76,6 +79,9 @@ export function EditInvoiceModal({
       setDueDate(invoice.due_date || "");
       setCurrency(invoice.currency || "USD");
       setTemplateId(invoice.template_id || "standard");
+      setDiscountMode((invoice.discount_type as any) || "flat");
+      const dVal = invoice.discount_value || 0;
+      setDiscountValue(invoice.discount_type === "percent" ? dVal : dVal / 100);
     } else {
       // Flush form if closed
       setInvoiceNumber("");
@@ -117,10 +123,12 @@ export function EditInvoiceModal({
         invoiceDate: date,
         dueDate,
         invoiceDetails: {
-          subtotal: subtotal,
-          total_amount: total,
+          subtotal: Math.round(subtotal * 100),
+          total_amount: Math.round(total * 100),
           currency,
           template_id: templateId,
+          discount_type: discountMode,
+          discount_value: discountMode === "percent" ? discountValue : Math.round(discountValue * 100),
         },
       });
 
@@ -141,7 +149,7 @@ export function EditInvoiceModal({
     }, 150);
   };
 
-  const { subtotal, total } = useMemo(() => calculateTotals(rows), [rows]);
+  const { subtotal, total, discountAmt } = useMemo(() => calculateTotals(rows, discountMode, discountValue), [rows, discountMode, discountValue]);
 
   // Resolve template UUID to slug for renderer
   const templateSlug = useMemo(() => {
@@ -157,10 +165,11 @@ export function EditInvoiceModal({
         invoiceNumber,
         invoiceDate: date,
         dueDate,
-        templateSlug,
+        templateSlug: templateSlug as InvoiceTemplateSlug,
         rows,
         subtotal,
         total,
+        discountAmt,
         fromProfile: profile,
         billTo: billToOverride,
       }),
@@ -173,6 +182,7 @@ export function EditInvoiceModal({
       rows,
       subtotal,
       total,
+      discountAmt,
       profile,
       billToOverride,
     ],
@@ -231,14 +241,35 @@ export function EditInvoiceModal({
               </div>
             ) : (
               <>
+                <div className="flex flex-col gap-2 min-w-0 mb-6">
+                  <label
+                    htmlFor="template-select-edit"
+                    className="text-[10px] font-bold uppercase tracking-widest text-slate-400"
+                  >
+                    Invoice Template
+                  </label>
+                  <select
+                    id="template-select-edit"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 truncate"
+                    value={templateId}
+                    onChange={(e) => setTemplateId(e.target.value)}
+                  >
+                    <option value="" disabled>
+                      Select a template
+                    </option>
+                    {templates?.map((t: any) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <InvoiceDetailsForm
                   clients={clients}
                   selectedClientId={selectedClientId}
                   setSelectedClientId={setSelectedClientId}
                   onClientCreated={handleClientCreated}
                   invoiceNumber={invoiceNumber}
-                  templateId={templateId}
-                  setTemplateId={setTemplateId}
                   currency={currency}
                   setCurrency={setCurrency}
                   dueDate={dueDate}

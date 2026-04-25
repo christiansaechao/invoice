@@ -17,8 +17,8 @@ export const fetchInvoices = async () => {
 
 export const fetchInvoicesWithTotals = async () => {
   const { data, error } = await supabase
-    .from("invoices_with_totals")
-    .select("*")
+    .from("invoices")
+    .select("*, client:clients(company_name, contact_name)")
     .order("invoice_number", { ascending: true });
 
   if (error) {
@@ -28,7 +28,12 @@ export const fetchInvoicesWithTotals = async () => {
     );
   }
 
-  return data;
+  return (data || []).map((inv: any) => ({
+    ...inv,
+    total_amount_owed: inv.total_amount || 0,
+    client_company_name: inv.client?.company_name,
+    client_contact_name: inv.client?.contact_name,
+  }));
 };
 
 export const fetchClients = async () => {
@@ -124,7 +129,7 @@ export const updateInvoiceEntries = async (invoiceId: string, rows: Row[]) => {
 
   const { data, error: insertError } = await supabase
     .from("entries")
-    .insert(formattedRows)
+    .insert(formattedRows as any[])
     .select();
 
   if (insertError) {
@@ -208,7 +213,7 @@ export const saveInvoice = async (
       p_nudge_profile: invoiceDetails.nudge_profile,
       p_work_week_only: invoiceDetails.work_week_only,
       p_entries: jsonEntries,
-    },
+    } as any,
   );
 
   if (error) {
@@ -223,12 +228,13 @@ export const saveInvoice = async (
   }
 
   // data will be { invoice: {...}, entries: [...] }
+  const responseData = data as any;
   return {
     success: true,
     message: "Successfully created new invoice and entries",
     error: null,
-    entries: data.entries,
-    invoice: data.invoice,
+    entries: responseData?.entries,
+    invoice: responseData?.invoice,
   };
 };
 
@@ -282,7 +288,7 @@ export const updateFullInvoice = async (
       invoice_date: invoiceDate || null,
       due_date: dueDate || null,
       ...invoiceDetails,
-    })
+    } as any)
     .eq("id", invoiceId);
 
   if (invErr) {

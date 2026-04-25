@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/accordion";
 
 import { calculateTotals, getBillToOverride } from "@/utils/invoice.utils";
-import { toSubUnits, SUPPORTED_CURRENCIES } from "@/lib/currency";
+import { toSubUnits } from "@/lib/currency";
 import { useLineItems } from "@/hooks/useLineItems";
 import { useSettings } from "@/store/settings.store";
 import { useUser } from "@/store/user.store";
@@ -37,7 +37,7 @@ import type { InvoiceTemplateSlug } from "@/types/invoice-document.types";
 
 export function NewInvoice() {
   const { session, profile } = useUser();
-  const { canCreateInvoice, activeClientCount, monthlyInvoiceCount, limits } = usePlanLimits();
+  const { canCreateInvoice, monthlyInvoiceCount, limits } = usePlanLimits();
 
   // Meta State
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -93,7 +93,7 @@ export function NewInvoice() {
         // Always keep local templateId in sync when the global default changes
         // (only override if the user hasn't manually picked a different one for this invoice)
         setTemplateId((prev) =>
-          prev === "" ? userSettings.default_template_id : prev,
+          prev === "" ? (userSettings.default_template_id || "") : prev,
         );
       }
     }
@@ -106,7 +106,7 @@ export function NewInvoice() {
     )?.slug ?? "standard";
 
   // Synchronize Payment Terms offset into Due Date automatically
-  const { paymentTerms, workspaceMode, nudgeConfig, documentType } =
+  const { paymentTerms, workspaceMode, nudgeConfig, documentType, discountMode, discountValue } =
     useInvoiceWorkspace();
 
   useEffect(() => {
@@ -226,7 +226,8 @@ export function NewInvoice() {
         subtotal: toSubUnits(subtotal),
         total_amount: toSubUnits(total),
         currency: currency,
-        discount_value: 0,
+        discount_type: discountMode,
+        discount_value: discountMode === "percent" ? discountValue : toSubUnits(discountValue),
         tax_amount: 0,
         template_id: templateId,
         auto_nudge: nudgeConfig.enabled,
@@ -290,7 +291,7 @@ export function NewInvoice() {
   };
 
   // Computed Totals
-  const { subtotal, total } = useMemo(() => calculateTotals(rows), [rows]);
+  const { subtotal, total, discountAmt } = useMemo(() => calculateTotals(rows, discountMode, discountValue), [rows, discountMode, discountValue]);
   const previewDocument = useMemo(
     () =>
       buildInvoiceDocumentData({
@@ -302,6 +303,7 @@ export function NewInvoice() {
         rows,
         subtotal,
         total,
+        discountAmt,
         fromProfile: profile,
         billTo: billToOverride,
       }),
@@ -313,6 +315,7 @@ export function NewInvoice() {
       rows,
       subtotal,
       total,
+      discountAmt,
       profile,
       billToOverride,
     ],

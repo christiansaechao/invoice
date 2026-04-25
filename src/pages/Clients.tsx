@@ -251,7 +251,7 @@ export function Clients() {
               <FeaturedClientCard
                 client={{
                   ...featured,
-                  notes: featured.notes || [],
+                  notes: (featured.notes as string[]) || [],
                   is_archived: !!featured.is_archived,
                 }}
                 onEdit={() => handleEdit(featured)}

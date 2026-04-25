@@ -4,7 +4,7 @@ import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function ArtisanLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, dueDate, billToOverride, rows, total, paymentLink, status, currency } = data;
+    const { invoiceNumber, date, dueDate, billToOverride, rows, total, paymentLink, status, currency, discount } = data;
     const t = TEMPLATE_THEMES.artisan;
     const g = t.gradient!;
 
@@ -24,7 +24,7 @@ export function ArtisanLayout({ data }: { data: any }) {
                     <div className="flex items-center gap-3">
                         <div 
                             className="h-10 w-10 rounded-xl flex items-center justify-center text-white font-black text-lg italic shadow-md"
-                            style={{ backgroundColor: t.primary, shadowColor: `${t.primary}33` }}
+                            style={{ backgroundColor: t.primary, boxShadow: `0 4px 14px ${t.primary}33` }}
                         >
                             A
                         </div>
@@ -92,7 +92,13 @@ export function ArtisanLayout({ data }: { data: any }) {
             </div>
 
             {/* Total block */}
-            <div className="mx-10 mt-6 rounded-2xl overflow-hidden">
+            {discount && discount > 0 ? (
+                <div className="mx-10 mt-4 mb-2 px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
+                    <div className="uppercase tracking-widest text-[9px] font-bold">Discount Applied</div>
+                    <div>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                </div>
+            ) : null}
+            <div className="mx-10 mt-2 rounded-2xl overflow-hidden">
                 <div 
                     className="px-6 py-5 flex justify-between items-center"
                     style={{ background: `linear-gradient(to right, ${t.primary}, ${g.end})` }}

@@ -37,7 +37,7 @@ export function StandardLayout({ data }: { data: any }) {
               <Totals
                 hourlyRate={hourlyRate}
                 subtotal={subtotal}
-                discount={0}
+                discount={data.discount || 0}
                 tax={0}
                 total={total}
               />

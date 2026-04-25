@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Card,
   CardHeader,
@@ -71,30 +71,36 @@ export function QuickEditInvoice({
   // Set the first available matching filtered invoice cleanly resolving cascading
   useEffect(() => {
     if (selectedCompany && filteredInvoices.length > 0) {
-      if (!filteredInvoices.find((inv: any) => inv.id === selectedInvoiceId)) {
-        setSelectedInvoiceId(filteredInvoices[0].id);
-      }
+      setSelectedInvoiceId((prev) => {
+        const stillExists = filteredInvoices.find((inv: any) => inv.id === prev);
+        return stillExists ? prev : filteredInvoices[0].id;
+      });
     } else {
       setSelectedInvoiceId("");
     }
-  }, [selectedCompany, filteredInvoices, selectedInvoiceId]);
+  }, [selectedCompany, filteredInvoices]);
 
   const activeInvoice =
     invoices.find((inv) => inv.id === selectedInvoiceId) || null;
 
-  const { data: entries = [], isLoading } = useFetchEntriesByInvoiceId(
+  const { data: entriesData, isLoading } = useFetchEntriesByInvoiceId(
     activeInvoice?.id || ""
   );
 
+  // Stabilize entries reference — only update when the data content actually changes
+  const prevEntriesRef = useRef<string>("");
   useEffect(() => {
-    if (entries) {
-      const sortedEntries = [...entries].sort(
-        (a: any, b: any) =>
-          new Date(b.work_date).getTime() - new Date(a.work_date).getTime(),
-      );
-      setRows(sortedEntries.length > 0 ? sortedEntries : []);
-    }
-  }, [entries, setRows]);
+    const serialized = JSON.stringify(entriesData ?? []);
+    if (serialized === prevEntriesRef.current) return;
+    prevEntriesRef.current = serialized;
+
+    const entries = entriesData ?? [];
+    const sortedEntries = [...entries].sort(
+      (a: any, b: any) =>
+        new Date(b.work_date).getTime() - new Date(a.work_date).getTime(),
+    );
+    setRows(sortedEntries.length > 0 ? sortedEntries : []);
+  }, [entriesData, setRows]);
 
   const handleSave = async () => {
     if (!activeInvoice) return;

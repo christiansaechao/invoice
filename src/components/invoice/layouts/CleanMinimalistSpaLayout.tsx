@@ -4,7 +4,7 @@ import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function CleanMinimalistSpaLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, billToOverride, rows, subtotal, total, paymentLink, status, currency } = data;
+    const { invoiceNumber, date, billToOverride, rows, subtotal, total, paymentLink, status, currency, discount } = data;
     const t = TEMPLATE_THEMES.spa;
 
     return (
@@ -64,6 +64,12 @@ export function CleanMinimalistSpaLayout({ data }: { data: any }) {
                         <span className="uppercase tracking-widest text-[10px] font-bold">Subtotal</span>
                         <span>${subtotal?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     </div>
+                    {discount && discount > 0 ? (
+                        <div className="flex justify-between text-xs mb-3" style={{ color: t.text.muted }}>
+                            <span className="uppercase tracking-widest text-[10px] font-bold">Discount</span>
+                            <span>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    ) : null}
                     <div className="flex justify-between text-xs mb-4 pb-4 border-b" style={{ color: t.text.muted, borderColor: t.border }}>
                         <span className="uppercase tracking-widest text-[10px] font-bold">Tax <span className="bg-blue-50 text-blue-500 px-1 py-0.5 rounded text-[8px] ml-1">0%</span></span>
                         <span>$0.00</span>

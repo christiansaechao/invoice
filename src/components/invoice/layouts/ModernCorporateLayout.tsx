@@ -4,7 +4,7 @@ import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function ModernCorporateLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, dueDate, billToOverride, rows, total, paymentLink, status, currency } = data;
+    const { invoiceNumber, date, dueDate, billToOverride, rows, total, paymentLink, status, currency, discount } = data;
     const t = TEMPLATE_THEMES.corporate;
 
     return (
@@ -80,7 +80,13 @@ export function ModernCorporateLayout({ data }: { data: any }) {
             </div>
 
             {/* Totals bar */}
-            <div className="mx-10 mt-6 text-white rounded-xl px-6 py-5 flex justify-between items-center" style={{ backgroundColor: t.bg.header }}>
+            {discount && discount > 0 ? (
+                <div className="mx-10 mt-4 mb-2 px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
+                    <div className="uppercase tracking-widest text-[10px] font-bold">Discount Applied</div>
+                    <div>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                </div>
+            ) : null}
+            <div className="mx-10 mt-2 text-white rounded-xl px-6 py-5 flex justify-between items-center" style={{ backgroundColor: t.bg.header }}>
                 <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: t.accent }}>Total Amount Due</div>
                 <div className="text-2xl font-black tracking-tight">${total?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
             </div>

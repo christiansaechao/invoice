@@ -4,7 +4,7 @@ import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function ModernStudioLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, billToOverride, rows, subtotal, total, paymentLink, status, currency } = data;
+    const { invoiceNumber, date, billToOverride, rows, subtotal, total, paymentLink, status, currency, discount } = data;
     const t = TEMPLATE_THEMES.studio;
 
     return (
@@ -94,6 +94,12 @@ export function ModernStudioLayout({ data }: { data: any }) {
                         <span className="font-semibold" style={{ color: t.text.muted }}>Subtotal</span>
                         <span className="font-bold" style={{ color: t.primary }}>${subtotal?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     </div>
+                    {discount && discount > 0 ? (
+                        <div className="flex justify-between items-center pb-2 border-b text-xs" style={{ borderColor: t.border }}>
+                            <span className="font-semibold" style={{ color: t.text.muted }}>Discount</span>
+                            <span className="font-bold" style={{ color: t.primary }}>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    ) : null}
                     <div className="flex justify-between items-center pb-4 text-xs">
                         <span className="font-semibold" style={{ color: t.text.muted }}>Tax (0%)</span>
                         <span className="font-bold" style={{ color: t.primary }}>$0.00</span>
