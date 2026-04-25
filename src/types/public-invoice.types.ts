@@ -1,3 +1,5 @@
+import type { Database } from "./supabase";
+
 /** Public-safe invoice/quote document returned by GET /invoices/:id/public */
 
 export type PublicLineItem = {
@@ -36,14 +38,19 @@ export type PublicInvoiceDocument = {
   invoiceNumber: string;
   invoiceDate: string;
   dueDate: string;
-  status: string;
-  paymentStatus: string;
+  status: Database["public"]["Enums"]["invoice_status"];
+  paymentStatus: Database["public"]["Enums"]["invoice_status"] | string;
+  isRestricted: boolean;
   paidAt: string | null;
   paymentLink: string | null;
   totalAmount: number;
   subtotal: number;
   currency: string;
-  docType: "invoice" | "quote";
+  discountType: string | null;
+  discountValue: number | null;
+  taxRate: number | null;
+  taxAmount: number | null;
+  docType: Database["public"]["Enums"]["document_type"];
   templateSlug: string;
   notes: string | null;
   terms: string | null;

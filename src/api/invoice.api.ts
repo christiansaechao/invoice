@@ -7,9 +7,12 @@ import {
   saveInvoice,
   updateInvoiceStatus,
   updateFullInvoice,
+  deleteInvoice,
+  fetchInvoiceHistory,
 } from "@/services/invoice.services";
 import type { Row } from "@/types/entries.types";
 import type { InvoiceStatus } from "@/types/invoice.types";
+import type { InvoiceSavePayload } from "@/types/invoice-payload.types";
 
 export const useFetchInvoices = () => {
   return useQuery({
@@ -41,7 +44,7 @@ export const useSaveInvoice = () => {
       clientId: string;
       invoiceDate: string;
       dueDate: string;
-      invoiceDetails: any;
+      invoiceDetails: InvoiceSavePayload;
     }) =>
       saveInvoice(
         params.rows,
@@ -79,7 +82,7 @@ export const useUpdateFullInvoice = () => {
       rows: Row[];
       invoiceDate: string;
       dueDate: string;
-      invoiceDetails: any;
+      invoiceDetails: Partial<InvoiceSavePayload>;
     }) =>
       updateFullInvoice(
         params.invoiceId,
@@ -112,5 +115,24 @@ export const useUpdateInvoiceEntries = () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["invoices-with-totals"] });
     },
+  });
+};
+
+export const useDeleteInvoice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (invoiceId: string) => deleteInvoice(invoiceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices-with-totals"] });
+    },
+  });
+};
+
+export const useInvoiceHistory = (invoiceId: string) => {
+  return useQuery({
+    queryKey: ["invoice-history", invoiceId],
+    queryFn: () => fetchInvoiceHistory(invoiceId),
+    enabled: !!invoiceId,
   });
 };

@@ -1,16 +1,6 @@
-export type Entries = {
-  id: string;
-  invoice_id: string;
-  service_date: string;
-  quantity: number;
-  amount: number;
-  description: string;
-  created_at: string;
-  updated_at: string;
-  item_name: string;
-  unit_price: number;
-  category?: string | null;
-};
+import type { Database } from "./supabase";
+
+export type Entries = Database["public"]["Tables"]["entries"]["Row"];
 
 export type Row = {
   service_date: string;

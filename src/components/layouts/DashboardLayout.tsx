@@ -11,16 +11,28 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Users,
-  Palette
+  Palette,
+  type LucideIcon,
 } from "lucide-react";
 import { useLogo } from "@/api/user.api";
 import { useUser } from "@/store/user.store";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+
+const navItems: { to: string; label: string; icon: LucideIcon }[] = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/dashboard/invoices", label: "New Invoice", icon: PlusCircle },
+  { to: "/dashboard/all-invoices", label: "All Invoices", icon: Receipt },
+  { to: "/dashboard/clients", label: "Clients", icon: Users },
+  { to: "/dashboard/templates", label: "Templates", icon: Palette },
+  { to: "/dashboard/settings", label: "Settings", icon: Settings },
+];
 
 export function DashboardLayout() {
-  const location = useLocation();
+  const { pathname } = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { session } = useUser();
   const { data: logoUrl } = useLogo(session?.user?.id ?? undefined);
+  const { monthlyInvoiceCount, limits } = usePlanLimits();
 
   async function signOut() {
     try {
@@ -31,34 +43,51 @@ export function DashboardLayout() {
     }
   }
 
+  const navCls = `w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`;
+
   return (
-    <div 
+    <div
       className="flex min-h-screen bg-background"
-      style={{ "--sidebar-width": isCollapsed ? "80px" : "256px" } as React.CSSProperties}
+      style={
+        {
+          "--sidebar-width": isCollapsed ? "80px" : "256px",
+        } as React.CSSProperties
+      }
     >
       {/* Sidebar */}
       <aside
-        className={`border-r border-border p-4 flex flex-col gap-4 duration-400 transition-all ${isCollapsed ? "w-20" : "w-64"
-          }`}
+        className={`border-r border-border p-4 flex flex-col gap-4 duration-400 transition-all ${
+          isCollapsed ? "w-20" : "w-64"
+        }`}
       >
-        <div className={`flex items-center mb-4 ${isCollapsed ? "justify-center" : "justify-between"}`}>
+        <div
+          className={`flex items-center mb-4 ${isCollapsed ? "justify-center" : "justify-between"}`}
+        >
           {!isCollapsed && (
             <div className="flex items-center gap-3 overflow-hidden">
               {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="h-8 w-8 object-contain rounded" />
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="h-8 w-8 object-contain rounded"
+                />
               ) : (
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xs">
                   R
                 </div>
               )}
               <div className="font-bold text-xl tracking-tight whitespace-nowrap">
-                Reciept
+                Receipt
               </div>
             </div>
           )}
           {isCollapsed && logoUrl && (
             <div className="mt-1">
-              <img src={logoUrl} alt="Logo" className="h-8 w-8 object-contain rounded mx-auto" />
+              <img
+                src={logoUrl}
+                alt="Logo"
+                className="h-8 w-8 object-contain rounded mx-auto"
+              />
             </div>
           )}
           <Button
@@ -68,74 +97,52 @@ export function DashboardLayout() {
             className="flex-shrink-0"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+            {isCollapsed ? (
+              <PanelLeftOpen className="h-5 w-5" />
+            ) : (
+              <PanelLeftClose className="h-5 w-5" />
+            )}
           </Button>
         </div>
 
         <nav className="flex flex-col gap-2">
-          <Link to="/dashboard">
+          {navItems.map(({ to, label, icon: Icon }) => (
             <Button
-              variant={location.pathname === "/dashboard" ? "secondary" : "ghost"}
-              className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
-              title={isCollapsed ? "Dashboard" : undefined}
+              key={to}
+              asChild
+              variant={pathname === to ? "secondary" : "ghost"}
+              className={navCls}
+              title={isCollapsed ? label : undefined}
             >
-              <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span>Dashboard</span>}
+              <Link to={to}>
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                {!isCollapsed && <span>{label}</span>}
+              </Link>
             </Button>
-          </Link>
-          <Link to="/dashboard/invoices">
-            <Button
-              variant={location.pathname === "/dashboard/invoices" ? "secondary" : "ghost"}
-              className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
-              title={isCollapsed ? "New Invoice" : undefined}
-            >
-              <PlusCircle className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span>New Invoice</span>}
-            </Button>
-          </Link>
-          <Link to="/dashboard/all-invoices">
-            <Button
-              variant={location.pathname === "/dashboard/all-invoices" ? "secondary" : "ghost"}
-              className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
-              title={isCollapsed ? "Invoices" : undefined}
-            >
-              <Receipt className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span>All Invoices</span>}
-            </Button>
-          </Link>
-          <Link to="/dashboard/clients">
-            <Button
-              variant={location.pathname === "/dashboard/clients" ? "secondary" : "ghost"}
-              className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
-              title={isCollapsed ? "Clients" : undefined}
-            >
-              <Users className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span>Clients</span>}
-            </Button>
-          </Link>
-          <Link to="/dashboard/templates">
-            <Button
-              variant={location.pathname === "/dashboard/templates" ? "secondary" : "ghost"}
-              className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
-              title={isCollapsed ? "Templates" : undefined}
-            >
-              <Palette className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span>Templates</span>}
-            </Button>
-          </Link>
-          <Link to="/dashboard/settings">
-            <Button
-              variant={location.pathname === "/dashboard/settings" ? "secondary" : "ghost"}
-              className={`w-full ${isCollapsed ? "justify-center px-0" : "justify-start"} gap-2`}
-              title={isCollapsed ? "Settings" : undefined}
-            >
-              <Settings className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span>Settings</span>}
-            </Button>
-          </Link>
+          ))}
         </nav>
 
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-4">
+          {!isCollapsed && limits.monthlyInvoices < 1000 && (
+            <div className="px-2 py-3 bg-muted/30 rounded-xl border border-border/50">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Monthly Usage</span>
+                <span className="text-[10px] font-mono font-bold text-foreground">{monthlyInvoiceCount}/{limits.monthlyInvoices}</span>
+              </div>
+              <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-500" 
+                  style={{ width: `${Math.min((monthlyInvoiceCount / limits.monthlyInvoices) * 100, 100)}%` }}
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-2 leading-tight">
+                {monthlyInvoiceCount >= limits.monthlyInvoices 
+                  ? "Limit reached. Upgrade for more." 
+                  : `${limits.monthlyInvoices - monthlyInvoiceCount} slots remaining.`}
+              </p>
+            </div>
+          )}
+
           <Button
             variant="outline"
             className={`w-full ${isCollapsed ? "justify-center px-0" : ""} gap-2`}

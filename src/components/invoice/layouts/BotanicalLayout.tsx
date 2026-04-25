@@ -4,7 +4,7 @@ import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function BotanicalLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, billToOverride, rows, subtotal, total, paymentLink, status, currency } = data;
+    const { invoiceNumber, date, billToOverride, rows, subtotal, total, paymentLink, status, currency, discount } = data;
     const t = TEMPLATE_THEMES.botanical;
 
     return (
@@ -60,6 +60,12 @@ export function BotanicalLayout({ data }: { data: any }) {
                         <span className="font-bold uppercase tracking-widest">Subtotal</span>
                         <span>${subtotal?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     </div>
+                    {discount && discount > 0 ? (
+                        <div className="flex justify-between items-center text-xs pb-3 border-b mb-3 font-sans opacity-80" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                            <span className="font-bold uppercase tracking-widest">Discount</span>
+                            <span>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    ) : null}
                     <div className="flex justify-between items-center text-xs pb-4 border-b mb-4 font-sans opacity-80" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
                         <span className="font-bold uppercase tracking-widest">Tax (0%)</span>
                         <span>$0.00</span>

@@ -37,15 +37,19 @@ export function StandardLayout({ data }: { data: any }) {
               <Totals
                 hourlyRate={hourlyRate}
                 subtotal={subtotal}
-                discount={0}
-                tax={0}
+                discount={data.discount || 0}
+                tax={data.tax || 0}
                 total={total}
+                paid={data.paid}
+                balanceDue={data.balanceDue}
+                currency={currency}
               />
 
               <PaymentSection 
                 paymentLink={paymentLink} 
                 status={status} 
                 total={total} 
+                balanceDue={data.balanceDue}
                 currency={currency} 
                 templateSlug="standard" 
               />

@@ -30,9 +30,14 @@ export type InvoiceDocumentParty = {
   logoUrl?: string;
 };
 
+/** @readonly Totals are computed at write-time. Renderers must not recalculate. */
 export type InvoiceDocumentTotals = {
   subtotal: number;
   total: number;
+  discountAmt?: number;
+  taxAmt?: number;
+  paid?: number;
+  balanceDue?: number;
   currency: string;
   hourlyRate?: number;
 };

@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { useFetchInvoicesWithTotals } from "@/api/invoice.api";
 import { useFetchClients } from "@/api/client.api";
-import { useFetchProfile } from "@/api/user.api";
+
 import type { InvoicesWithTotals } from "@/types/invoice.types";
 
 import { EarningsHero } from "@/components/dashboard/EarningsHero";

@@ -30,7 +30,6 @@ export function FromInfo({ variant = "default" }: FromInfoProps) {
     area_code,
     address,
     phone_number,
-    company_name,
   } = profile ?? {};
 
   if (!profile) {
@@ -38,7 +37,7 @@ export function FromInfo({ variant = "default" }: FromInfoProps) {
   }
 
   const fullName = `${first_name ?? ""} ${last_name ?? ""}`.trim() || "Your Name";
-  const displayCompany = (company_name as string | undefined) || fullName;
+  const displayCompany = fullName;
   const cityStateZip = [city, state, area_code].filter(Boolean).join(", ");
 
   // Resolve theme based on variant

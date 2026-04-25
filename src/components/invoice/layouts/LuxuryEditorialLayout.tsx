@@ -4,7 +4,7 @@ import { PaymentSection } from "../PaymentSection";
 import { TEMPLATE_THEMES } from "@/constants/template-themes";
 
 export function LuxuryEditorialLayout({ data }: { data: any }) {
-    const { invoiceNumber, date, dueDate, billToOverride, rows, subtotal, total, paymentLink, status, currency } = data;
+    const { invoiceNumber, date, dueDate, billToOverride, rows, subtotal, total, paymentLink, status, currency, discount } = data;
     const t = TEMPLATE_THEMES.luxury;
 
     return (
@@ -77,6 +77,12 @@ export function LuxuryEditorialLayout({ data }: { data: any }) {
                         <span>Subtotal</span>
                         <span>${subtotal?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     </div>
+                    {discount && discount > 0 ? (
+                        <div className="flex justify-between text-xs uppercase tracking-wider opacity-60">
+                            <span>Discount</span>
+                            <span>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    ) : null}
                     <div className="flex justify-between text-xs uppercase tracking-wider pb-3 border-b opacity-60" style={{ borderColor: t.primary }}>
                         <span>Tax (0%)</span>
                         <span>$0.00</span>

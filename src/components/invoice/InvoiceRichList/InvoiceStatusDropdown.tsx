@@ -23,6 +23,18 @@ export const STATUS_CONFIG: Record<
     pillClass: "bg-destructive text-destructive-foreground",
     amountClass: "text-destructive",
   },
+  draft: {
+    label: "Draft",
+    barClass: "bg-amber-500",
+    pillClass: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    amountClass: "text-foreground",
+  },
+  void: {
+    label: "Void",
+    barClass: "bg-muted",
+    pillClass: "bg-muted text-muted-foreground",
+    amountClass: "text-muted-foreground line-through",
+  },
 };
 
 export interface StatusDropdownProps {

@@ -9,7 +9,7 @@ export const getDefaultClient = async () => {
     const { data, error } = await supabase
       .from("user_settings")
       .select("default_client_id")
-      .eq("user_id", session?.user.id)
+      .eq("user_id", session?.user.id as string)
       .single();
 
     if (error) throw error;
@@ -17,7 +17,7 @@ export const getDefaultClient = async () => {
     const { data: clientData, error: clientError } = await supabase
       .from("clients")
       .select("*")
-      .eq("id", data?.default_client_id)
+      .eq("id", data?.default_client_id as string)
       .single();
 
     if (clientError) throw clientError;
@@ -36,7 +36,7 @@ export const setDefaultClient = async (clientId: string) => {
 
     const { data, error } = await supabase
       .from("user_settings")
-      .upsert({ user_id: session?.user.id, default_client_id: clientId });
+      .upsert({ user_id: session?.user.id as string, default_client_id: clientId });
 
     if (error) throw error;
 
@@ -50,7 +50,7 @@ export const updateClient = async (clientId: string, clientData: any) => {
   try {
     const { data, error } = await supabase
       .from("clients")
-      .update(clientData)
+      .update(clientData as any)
       .eq("id", clientId)
       .select();
 
@@ -83,7 +83,7 @@ export const archiveClient = async (
   try {
     const { data, error } = await supabase
       .from("clients")
-      .update({ is_archived: isArchived })
+      .update({ is_archived: isArchived } as any)
       .eq("id", clientId)
       .select();
 

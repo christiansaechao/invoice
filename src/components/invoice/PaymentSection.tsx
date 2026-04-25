@@ -5,6 +5,7 @@ interface PaymentSectionProps {
   paymentLink?: string | null;
   status?: string;
   total?: number;
+  balanceDue?: number;
   currency?: string;
   templateSlug?: string;
 }
@@ -13,11 +14,12 @@ export function PaymentSection({
   paymentLink, 
   status = "draft", 
   total, 
+  balanceDue,
   currency = "USD",
   templateSlug = "standard" 
 }: PaymentSectionProps) {
-  // Actionable check
-  const isActionable = status === "sent" || status === "overdue";
+  // Actionable check: must not be draft, paid, or cancelled
+  const isActionable = status !== "draft" && status !== "paid" && status !== "cancelled";
   
   if (!paymentLink || !isActionable) return null;
 
@@ -27,7 +29,7 @@ export function PaymentSection({
   return (
     <div className="mt-10 mb-6 p-8 border rounded-2xl flex flex-col items-center gap-4 text-center" style={{ backgroundColor: t.bg.header, borderColor: t.border }}>
       <p className="text-sm font-semibold" style={{ color: t.primary }}>
-        Ready to pay {currency} ${total?.toLocaleString('en-US', { minimumFractionDigits: 2 })}?
+        Ready to pay {currency} ${(balanceDue !== undefined ? balanceDue : total)?.toLocaleString('en-US', { minimumFractionDigits: 2 })}?
       </p>
       
       <a 

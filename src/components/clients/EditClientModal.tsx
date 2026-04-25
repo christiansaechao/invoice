@@ -34,7 +34,7 @@ export function EditClientModal({ client, isOpen, onClose, onArchive }: EditClie
         email: client.email || "",
         industry: client.industry || "",
       });
-      setNotes(client.notes || []);
+      setNotes((client.notes as string[]) || []);
     }
   }, [client]);
 
@@ -91,7 +91,7 @@ export function EditClientModal({ client, isOpen, onClose, onArchive }: EditClie
               <Label htmlFor="company_name" className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mr-auto">Company Name</Label>
               <Input
                 id="company_name"
-                value={formData.company_name}
+                value={formData.company_name ?? ""}
                 onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                 placeholder="Google, Inc."
                 className="rounded-xl bg-muted/30 border-border focus:bg-card transition-colors"
@@ -102,7 +102,7 @@ export function EditClientModal({ client, isOpen, onClose, onArchive }: EditClie
               <Label htmlFor="contact_name" className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mr-auto">Contact Person</Label>
               <Input
                 id="contact_name"
-                value={formData.contact_name}
+                value={formData.contact_name ?? ""}
                 onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
                 placeholder="Jane Smith"
                 className="rounded-xl bg-muted/30 border-border focus:bg-card transition-colors"
@@ -116,7 +116,7 @@ export function EditClientModal({ client, isOpen, onClose, onArchive }: EditClie
             <Input
               id="email"
               type="email"
-              value={formData.email}
+              value={formData.email ?? ""}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="jane@company.com"
               className="rounded-xl bg-muted/30 border-border focus:bg-card transition-colors"
@@ -128,7 +128,7 @@ export function EditClientModal({ client, isOpen, onClose, onArchive }: EditClie
             <Label htmlFor="industry" className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mr-auto">Industry / Type</Label>
             <Input
               id="industry"
-              value={formData.industry || ""}
+              value={formData.industry ?? ""}
               onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
               placeholder="Tech, Home Services, etc."
               className="rounded-xl bg-muted/30 border-border focus:bg-card transition-colors"

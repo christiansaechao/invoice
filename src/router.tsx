@@ -67,10 +67,10 @@ export const router = createBrowserRouter([
         element: <PublicInvoiceView />,
       },
       {
+        path: "dashboard",
         element: <RequireAuth />,
         children: [
           {
-            path: "dashboard",
             element: <DashboardLayout />,
             children: [
               {

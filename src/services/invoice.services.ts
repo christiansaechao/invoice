@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase-client";
 import type { Row } from "@/types/entries.types";
 import type { InvoiceStatus } from "@/types/invoice.types";
+import type { InvoiceSavePayload } from "@/types/invoice-payload.types";
 
 export const fetchInvoices = async () => {
   const { data, error } = await supabase.from("invoices").select("*");
@@ -17,8 +18,8 @@ export const fetchInvoices = async () => {
 
 export const fetchInvoicesWithTotals = async () => {
   const { data, error } = await supabase
-    .from("invoices_with_totals")
-    .select("*")
+    .from("invoices")
+    .select("*, client:clients(company_name, contact_name)")
     .order("invoice_number", { ascending: true });
 
   if (error) {
@@ -28,7 +29,12 @@ export const fetchInvoicesWithTotals = async () => {
     );
   }
 
-  return data;
+  return (data || []).map((inv: any) => ({
+    ...inv,
+    total_amount_owed: inv.total_amount || 0,
+    client_company_name: inv.client?.company_name,
+    client_contact_name: inv.client?.contact_name,
+  }));
 };
 
 export const fetchClients = async () => {
@@ -97,6 +103,22 @@ export const fetchEntriesByInvoiceId = async (invoiceId: string) => {
   }));
 };
 
+export const fetchInvoiceHistory = async (invoiceId: string) => {
+  const [emails, nudges, payments] = await Promise.all([
+    supabase.from("invoice_email_events").select("*").eq("invoice_id", invoiceId).order("created_at", { ascending: false }),
+    supabase.from("nudge_history").select("*").eq("invoice_id", invoiceId).order("sent_at", { ascending: false }),
+    supabase.from("invoice_payments").select("*").eq("invoice_id", invoiceId).order("created_at", { ascending: false }),
+  ]);
+
+  const history = [
+    ...(emails.data || []).map(e => ({ ...e, event_type: 'email' as const, timestamp: e.created_at })),
+    ...(nudges.data || []).map(n => ({ ...n, event_type: 'nudge' as const, timestamp: n.sent_at })),
+    ...(payments.data || []).map(p => ({ ...p, event_type: 'payment' as const, timestamp: p.created_at })),
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  return history;
+};
+
 export const updateInvoiceEntries = async (invoiceId: string, rows: Row[]) => {
   const { error: deleteError } = await supabase
     .from("entries")
@@ -124,7 +146,7 @@ export const updateInvoiceEntries = async (invoiceId: string, rows: Row[]) => {
 
   const { data, error: insertError } = await supabase
     .from("entries")
-    .insert(formattedRows)
+    .insert(formattedRows as any[])
     .select();
 
   if (insertError) {
@@ -139,23 +161,7 @@ export const saveInvoice = async (
   clientId: string,
   invoiceDate: string,
   dueDate: string,
-  invoiceDetails: {
-    currency?: string;
-    subtotal?: number;
-    discount_type?: string;
-    discount_value?: number;
-    tax_rate?: number;
-    tax_amount?: number;
-    total_amount?: number;
-    auto_nudge?: boolean;
-    nudge_profile: "chill" | "professional" | "direct";
-    work_week_only: boolean;
-    notes?: string;
-    terms?: string;
-    parent_recurring_id?: string | null;
-    template_id?: string | null;
-    doc_type?: "invoice" | "quote";
-  },
+  invoiceDetails: InvoiceSavePayload,
 ) => {
   const {
     data: { user },
@@ -208,7 +214,7 @@ export const saveInvoice = async (
       p_nudge_profile: invoiceDetails.nudge_profile,
       p_work_week_only: invoiceDetails.work_week_only,
       p_entries: jsonEntries,
-    },
+    } as any,
   );
 
   if (error) {
@@ -223,12 +229,13 @@ export const saveInvoice = async (
   }
 
   // data will be { invoice: {...}, entries: [...] }
+  const responseData = data as any;
   return {
     success: true,
     message: "Successfully created new invoice and entries",
     error: null,
-    entries: data.entries,
-    invoice: data.invoice,
+    entries: responseData?.entries,
+    invoice: responseData?.invoice,
   };
 };
 
@@ -250,6 +257,16 @@ export const updateInvoiceStatus = async (
   return { success: true, data };
 };
 
+export const deleteInvoice = async (invoiceId: string) => {
+  const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
+
+  if (error) {
+    console.error("Failed to delete invoice:", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+};
+
 export const updateFullInvoice = async (
   invoiceId: string,
   clientId: string,
@@ -257,22 +274,7 @@ export const updateFullInvoice = async (
   rows: Row[],
   invoiceDate: string,
   dueDate: string,
-  invoiceDetails: {
-    currency?: string;
-    subtotal?: number;
-    discount_type?: string;
-    discount_value?: number;
-    tax_rate?: number;
-    tax_amount?: number;
-    total_amount?: number;
-    notes?: string;
-    terms?: string;
-    parent_recurring_id?: string | null;
-    email_status?: string | null;
-    last_email_at?: string | null;
-    payment_link?: string | null;
-    template_id?: string | null;
-  },
+  invoiceDetails: Partial<InvoiceSavePayload>,
 ) => {
   const { error: invErr } = await supabase
     .from("invoices")
@@ -282,7 +284,7 @@ export const updateFullInvoice = async (
       invoice_date: invoiceDate || null,
       due_date: dueDate || null,
       ...invoiceDetails,
-    })
+    } as any)
     .eq("id", invoiceId);
 
   if (invErr) {
