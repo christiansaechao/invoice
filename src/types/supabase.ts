@@ -807,7 +807,7 @@ export type Database = {
     };
     Enums: {
       document_type: "quote" | "invoice";
-      invoice_status: "paid" | "pending" | "overdue";
+      invoice_status: "draft" | "paid" | "pending" | "overdue" | "void";
       nudge_type: "initial" | "reminder_1" | "reminder_2" | "final_notice";
       subscription_interval: "month" | "year";
       subscription_status: "active" | "past_due" | "canceled" | "incomplete";
@@ -943,7 +943,7 @@ export const Constants = {
   public: {
     Enums: {
       document_type: ["quote", "invoice"],
-      invoice_status: ["paid", "pending", "overdue"],
+      invoice_status: ["draft", "paid", "pending", "overdue", "void"],
       nudge_type: ["initial", "reminder_1", "reminder_2", "final_notice"],
       subscription_interval: ["month", "year"],
       subscription_status: ["active", "past_due", "canceled", "incomplete"],

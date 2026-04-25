@@ -13,6 +13,9 @@ type BuildInvoiceDocumentInput = {
   subtotal: number;
   total: number;
   discountAmt?: number;
+  taxAmt?: number;
+  paid?: number;
+  balanceDue?: number;
   currency?: string;
   fromProfile?: ProfileType | null;
   billTo?: BillToInfo;
@@ -47,6 +50,9 @@ export function buildInvoiceDocumentData({
   subtotal,
   total,
   discountAmt,
+  taxAmt,
+  paid,
+  balanceDue,
   currency = "USD",
   fromProfile,
   billTo,
@@ -83,6 +89,9 @@ export function buildInvoiceDocumentData({
       subtotal,
       total,
       discountAmt,
+      taxAmt,
+      paid,
+      balanceDue,
       currency,
     },
     notes,

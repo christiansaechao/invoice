@@ -45,6 +45,10 @@ export type PublicInvoiceDocument = {
   totalAmount: number;
   subtotal: number;
   currency: string;
+  discountType: string | null;
+  discountValue: number | null;
+  taxRate: number | null;
+  taxAmount: number | null;
   docType: Database["public"]["Enums"]["document_type"];
   templateSlug: string;
   notes: string | null;

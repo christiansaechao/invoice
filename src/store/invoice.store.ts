@@ -32,6 +32,11 @@ type InvoiceStoreState = {
     discountValue: number;
     setDiscountValue: (val: number) => void;
 
+    // Tax Form Data
+    /** Tax rate in basis points — e.g. 825 = 8.25% */
+    taxRateBps: number;
+    setTaxRateBps: (val: number) => void;
+
     // Nudge Config
     nudgeConfig: {
         enabled: boolean;
@@ -65,6 +70,9 @@ export const useInvoiceWorkspace = create<InvoiceStoreState>((set) => ({
     setDiscountMode: (mode) => set({ discountMode: mode }),
     discountValue: 0,
     setDiscountValue: (val) => set({ discountValue: val }),
+
+    taxRateBps: 0,
+    setTaxRateBps: (val) => set({ taxRateBps: val }),
 
     nudgeConfig: {
         enabled: false,

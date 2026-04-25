@@ -24,9 +24,10 @@ export function LineItemsForm({
   removeRow,
   addRow,
 }: LineItemsFormProps) {
-  const { discountMode, setDiscountMode, discountValue, setDiscountValue } =
+  const { discountMode, setDiscountMode, discountValue, setDiscountValue, taxRateBps, setTaxRateBps } =
     useInvoiceWorkspace();
   const [showDiscount, setShowDiscount] = useState(discountValue > 0);
+  const [showTax, setShowTax] = useState(taxRateBps > 0);
 
   return (
     <div className="bg-card p-4 rounded-lg">
@@ -269,6 +270,72 @@ export function LineItemsForm({
                 </span>
               </div>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Tax Rate */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between bg-muted/20 p-3 border border-border/40 rounded-xl">
+          <h3 className="text-sm font-semibold text-foreground ml-1">
+            Tax Rate
+          </h3>
+          <div className="flex bg-muted/40 p-1 rounded-lg w-[180px]">
+            <button
+              onClick={() => {
+                setShowTax(false);
+                setTaxRateBps(0);
+              }}
+              className={cn(
+                "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
+                !showTax
+                  ? "bg-card shadow-sm text-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
+              Off
+            </button>
+            <button
+              onClick={() => setShowTax(true)}
+              className={cn(
+                "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
+                showTax
+                  ? "bg-card shadow-sm text-primary"
+                  : "text-muted-foreground",
+              )}
+            >
+              Active
+            </button>
+          </div>
+        </div>
+
+        {showTax && (
+          <div className="mt-4 flex flex-col gap-4 bg-muted/20 p-4 rounded-xl animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-4">
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">
+                Tax Rate
+              </Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={taxRateBps > 0 ? (taxRateBps / 100).toString() : ""}
+                  onChange={(e) => {
+                    const pct = parseFloat(e.target.value) || 0;
+                    setTaxRateBps(Math.round(pct * 100));
+                  }}
+                  className="w-32 pr-8"
+                  placeholder="0"
+                />
+                <span className="absolute right-3 top-2 text-sm text-muted-foreground font-medium">
+                  %
+                </span>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              Applied after discount. e.g. 8.25 = 8.25% tax rate
+            </p>
           </div>
         )}
       </div>

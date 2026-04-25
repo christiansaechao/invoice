@@ -92,26 +92,45 @@ export function ArtisanLayout({ data }: { data: any }) {
             </div>
 
             {/* Total block */}
-            {discount && discount > 0 ? (
-                <div className="mx-10 mt-4 mb-2 px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
-                    <div className="uppercase tracking-widest text-[9px] font-bold">Discount Applied</div>
-                    <div>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                </div>
-            ) : null}
-            <div className="mx-10 mt-2 rounded-2xl overflow-hidden">
-                <div 
-                    className="px-6 py-5 flex justify-between items-center"
-                    style={{ background: `linear-gradient(to right, ${t.primary}, ${g.end})` }}
-                >
-                    <div>
-                        <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: t.text.light }}>Total Due</p>
-                        <p className="text-white text-2xl font-black tracking-tight mt-1">
-                            ${total?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </p>
+            <div className="mx-10 mt-4 flex flex-col gap-2">
+                {discount && discount > 0 ? (
+                    <div className="px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
+                        <div className="uppercase tracking-widest text-[9px] font-bold">Discount Applied</div>
+                        <div>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
                     </div>
-                    <div className="text-right text-xs opacity-80 max-w-[180px]" style={{ color: t.text.light }}>
-                        <p>Payment brings ideas to life.</p>
-                        <p className="mt-1">Thank you for the opportunity ✦</p>
+                ) : null}
+                
+                {data.tax && data.tax > 0 ? (
+                    <div className="px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
+                        <div className="uppercase tracking-widest text-[9px] font-bold">Tax</div>
+                        <div>${data.tax.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                    </div>
+                ) : null}
+
+                {data.paid && data.paid > 0 ? (
+                    <div className="px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
+                        <div className="uppercase tracking-widest text-[9px] font-bold">Paid</div>
+                        <div>${data.paid.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                    </div>
+                ) : null}
+
+                <div className="rounded-2xl overflow-hidden mt-1">
+                    <div 
+                        className="px-6 py-5 flex justify-between items-center"
+                        style={{ background: `linear-gradient(to right, ${t.primary}, ${g.end})` }}
+                    >
+                        <div>
+                            <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: t.text.light }}>
+                                {data.balanceDue !== undefined ? "Balance Due" : "Total Due"}
+                            </p>
+                            <p className="text-white text-2xl font-black tracking-tight mt-1">
+                                ${ (data.balanceDue !== undefined ? data.balanceDue : total)?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </p>
+                        </div>
+                        <div className="text-right text-xs opacity-80 max-w-[180px]" style={{ color: t.text.light }}>
+                            <p>Payment brings ideas to life.</p>
+                            <p className="mt-1">Thank you for the opportunity ✦</p>
+                        </div>
                     </div>
                 </div>
             </div>

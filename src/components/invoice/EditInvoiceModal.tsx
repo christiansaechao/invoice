@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,18 +8,20 @@ import {
 import { InvoiceDetailsForm } from "./InvoiceDetailsForm";
 import { LineItemsForm } from "./LineItemsForm";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2, Printer } from "lucide-react";
+import { Save, Loader2, Printer, Lock, Send } from "lucide-react";
 import { useFetchClients } from "@/api/client.api";
 import {
   useFetchEntriesByInvoiceId,
   useUpdateFullInvoice,
 } from "@/api/invoice.api";
+import { useFetchInvoiceBalance } from "@/api/payment.api";
 import { toast } from "sonner";
 import {
-  calculateTotals,
   getBillToOverride,
   createEmptyRow,
 } from "@/utils/invoice.utils";
+import { computeTotalsFromRows, isFinancialChange } from "@/lib/billing";
+import { sendInvoiceEmail } from "@/services/invoice.services";
 import { useLineItems } from "@/hooks/useLineItems";
 import type { InvoicesWithTotals } from "@/types/invoice.types";
 import { TemplateRenderer } from "./TemplateRenderer";
@@ -45,10 +47,11 @@ export function EditInvoiceModal({
   const [templateId, setTemplateId] = useState("standard");
   const [currency, setCurrency] = useState("USD");
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [isSending, setIsSending] = useState(false);
   const { profile } = useUser();
   const { data: templates } = useTemplates();
   const { data: clients = [] } = useFetchClients();
-  const { discountMode, setDiscountMode, discountValue, setDiscountValue } = useInvoiceWorkspace();
+  const { discountMode, setDiscountMode, discountValue, setDiscountValue, taxRateBps, setTaxRateBps } = useInvoiceWorkspace();
 
   const {
     rows,
@@ -68,6 +71,8 @@ export function EditInvoiceModal({
   const { mutateAsync: updateFullInvoiceMutation, isPending: isDeploying } =
     useUpdateFullInvoice();
 
+  const { data: balanceData } = useFetchInvoiceBalance(invoice?.id || "");
+
   // Initialization Hydrating Hooks
 
   useEffect(() => {
@@ -79,9 +84,10 @@ export function EditInvoiceModal({
       setDueDate(invoice.due_date || "");
       setCurrency(invoice.currency || "USD");
       setTemplateId(invoice.template_id || "standard");
-      setDiscountMode((invoice.discount_type as any) || "flat");
+      setDiscountMode((invoice.discount_type as "flat" | "percent") || "flat");
       const dVal = invoice.discount_value || 0;
       setDiscountValue(invoice.discount_type === "percent" ? dVal : dVal / 100);
+      setTaxRateBps(invoice.tax_rate || 0);
     } else {
       // Flush form if closed
       setInvoiceNumber("");
@@ -104,11 +110,52 @@ export function EditInvoiceModal({
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const billToOverride = getBillToOverride(selectedClient);
 
+  // Lifecycle guard: paid and void invoices are immutable
+  const isLocked = invoice?.status === "paid" || invoice?.status === "void";
+  const isSentInvoice = invoice?.status === "pending" || invoice?.status === "overdue";
+
+  // Snapshot of original invoice for change detection
+  const originalSnapshot = useRef<Record<string, unknown>>({});
+  useEffect(() => {
+    if (isOpen && invoice) {
+      originalSnapshot.current = {
+        subtotal: invoice.subtotal,
+        total_amount: invoice.total_amount,
+        discount_type: invoice.discount_type,
+        discount_value: invoice.discount_value,
+        tax_rate: invoice.tax_rate,
+        tax_amount: invoice.tax_amount,
+        currency: invoice.currency,
+        due_date: invoice.due_date,
+      };
+    }
+  }, [isOpen, invoice]);
+
+  // Detect if current edits include financial changes compared to original
+  const hasFinancialChanges = useMemo(() => {
+    if (!isSentInvoice) return false;
+    const current: Record<string, unknown> = {
+      subtotal: subtotalCents,
+      total_amount: totalCents,
+      discount_type: discountMode,
+      discount_value: discountMode === "percent" ? discountValue : discountCents,
+      tax_rate: taxRateBps,
+      tax_amount: taxCents,
+      currency,
+      due_date: dueDate,
+    };
+    return isFinancialChange(originalSnapshot.current, current);
+  }, [isSentInvoice, subtotalCents, totalCents, discountMode, discountValue, discountCents, taxRateBps, taxCents, currency, dueDate]);
+
   const handleClientCreated = (newClient: any) => {
     setSelectedClientId(newClient.id);
   };
 
   const handleSave = async () => {
+    if (isLocked) {
+      toast.error(`This invoice is ${invoice?.status} and cannot be edited.`);
+      return;
+    }
     if (!invoice || !selectedClientId) {
       toast.error("Please ensure a Client is selected.");
       return;
@@ -123,12 +170,14 @@ export function EditInvoiceModal({
         invoiceDate: date,
         dueDate,
         invoiceDetails: {
-          subtotal: Math.round(subtotal * 100),
-          total_amount: Math.round(total * 100),
+          subtotal: subtotalCents,
+          total_amount: totalCents,
           currency,
           template_id: templateId,
           discount_type: discountMode,
-          discount_value: discountMode === "percent" ? discountValue : Math.round(discountValue * 100),
+          discount_value: discountMode === "percent" ? discountValue : discountCents,
+          tax_rate: taxRateBps,
+          tax_amount: taxCents,
         },
       });
 
@@ -143,13 +192,81 @@ export function EditInvoiceModal({
     }
   };
 
+  /** Save + resend email for pending/overdue invoices with financial changes */
+  const handleSaveAndResend = async () => {
+    if (!invoice || !selectedClientId || isLocked) return;
+
+    const client = clients.find((c) => c.id === selectedClientId);
+    if (!client?.email) {
+      toast.error("Client has no email address on file.");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      // 1. Save the invoice first
+      const res = await updateFullInvoiceMutation({
+        invoiceId: invoice.id,
+        clientId: selectedClientId,
+        invoiceNumber,
+        rows,
+        invoiceDate: date,
+        dueDate,
+        invoiceDetails: {
+          subtotal: subtotalCents,
+          total_amount: totalCents,
+          currency,
+          template_id: templateId,
+          discount_type: discountMode,
+          discount_value: discountMode === "percent" ? discountValue : discountCents,
+          tax_rate: taxRateBps,
+          tax_amount: taxCents,
+        },
+      });
+
+      if (!res.success) {
+        toast.error(res.error || "Failed to update record.");
+        setIsSending(false);
+        return;
+      }
+
+      // 2. Resend the email
+      const { session } = useUser.getState();
+      if (!session?.access_token) {
+        toast.error("Session expired. Please log in again.");
+        setIsSending(false);
+        return;
+      }
+
+      await sendInvoiceEmail(
+        {
+          invoiceId: invoice.id,
+          invoiceNumber,
+          templateId,
+        },
+        client.email,
+        session.access_token,
+      );
+
+      toast.success("Invoice updated and resent to client.");
+      onClose();
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save and resend.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const printInvoice = () => {
     setTimeout(() => {
       window.print();
     }, 150);
   };
 
-  const { subtotal, total, discountAmt } = useMemo(() => calculateTotals(rows, discountMode, discountValue), [rows, discountMode, discountValue]);
+  const { subtotal, total, discountAmt, tax, subtotalCents, totalCents, discountCents, taxCents } = useMemo(
+    () => computeTotalsFromRows(rows, discountMode, discountValue, taxRateBps),
+    [rows, discountMode, discountValue, taxRateBps],
+  );
 
   // Resolve template UUID to slug for renderer
   const templateSlug = useMemo(() => {
@@ -170,6 +287,9 @@ export function EditInvoiceModal({
         subtotal,
         total,
         discountAmt,
+        taxAmt: tax,
+        paid: (balanceData?.totalPaidCents ?? 0) / 100,
+        balanceDue: (balanceData?.balanceDueCents ?? 0) / 100,
         fromProfile: profile,
         billTo: billToOverride,
       }),
@@ -183,6 +303,7 @@ export function EditInvoiceModal({
       subtotal,
       total,
       discountAmt,
+      tax,
       profile,
       billToOverride,
     ],
@@ -221,18 +342,43 @@ export function EditInvoiceModal({
               <Button
                 size="sm"
                 onClick={handleSave}
-                disabled={isDeploying || isFetchingEntries || !invoice}
+                disabled={isDeploying || isSending || isFetchingEntries || !invoice || isLocked}
+                variant={hasFinancialChanges ? "outline" : "default"}
                 className="h-8"
               >
-                {isDeploying ? (
+                {isDeploying && !isSending ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : (
                   <Save className="w-4 h-4 mr-2" />
                 )}
                 Save
               </Button>
+              {hasFinancialChanges && (
+                <Button
+                  size="sm"
+                  onClick={handleSaveAndResend}
+                  disabled={isDeploying || isSending || isFetchingEntries || !invoice}
+                  className="h-8"
+                >
+                  {isSending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  Save & Resend
+                </Button>
+              )}
             </div>
           </div>
+
+          {isLocked && (
+            <div className="mx-6 mt-4 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-2">
+              <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+                This invoice is <span className="font-bold">{invoice?.status}</span> and cannot be edited.
+              </p>
+            </div>
+          )}
 
           <div className="p-6 flex flex-col gap-6 flex-1 overflow-y-auto">
             {isFetchingEntries ? (

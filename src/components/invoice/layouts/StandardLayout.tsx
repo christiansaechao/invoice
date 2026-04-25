@@ -38,14 +38,18 @@ export function StandardLayout({ data }: { data: any }) {
                 hourlyRate={hourlyRate}
                 subtotal={subtotal}
                 discount={data.discount || 0}
-                tax={0}
+                tax={data.tax || 0}
                 total={total}
+                paid={data.paid}
+                balanceDue={data.balanceDue}
+                currency={currency}
               />
 
               <PaymentSection 
                 paymentLink={paymentLink} 
                 status={status} 
                 total={total} 
+                balanceDue={data.balanceDue}
                 currency={currency} 
                 templateSlug="standard" 
               />

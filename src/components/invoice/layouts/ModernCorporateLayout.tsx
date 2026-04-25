@@ -80,15 +80,36 @@ export function ModernCorporateLayout({ data }: { data: any }) {
             </div>
 
             {/* Totals bar */}
-            {discount && discount > 0 ? (
-                <div className="mx-10 mt-4 mb-2 px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
-                    <div className="uppercase tracking-widest text-[10px] font-bold">Discount Applied</div>
-                    <div>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+            <div className="mx-10 mt-4 flex flex-col gap-2">
+                {discount && discount > 0 ? (
+                    <div className="px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
+                        <div className="uppercase tracking-widest text-[10px] font-bold">Discount Applied</div>
+                        <div>-${discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                    </div>
+                ) : null}
+
+                {data.tax && data.tax > 0 ? (
+                    <div className="px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
+                        <div className="uppercase tracking-widest text-[10px] font-bold">Tax</div>
+                        <div>${data.tax.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                    </div>
+                ) : null}
+
+                {data.paid && data.paid > 0 ? (
+                    <div className="px-6 flex justify-between items-center text-sm font-semibold" style={{ color: t.text.muted }}>
+                        <div className="uppercase tracking-widest text-[10px] font-bold">Paid</div>
+                        <div className="text-green-700">-${data.paid.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                    </div>
+                ) : null}
+
+                <div className="text-white rounded-xl px-6 py-5 flex justify-between items-center mt-1" style={{ backgroundColor: t.bg.header }}>
+                    <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: t.accent }}>
+                        {data.balanceDue !== undefined ? "Remaining Balance Due" : "Total Amount Due"}
+                    </div>
+                    <div className="text-2xl font-black tracking-tight">
+                        ${ (data.balanceDue !== undefined ? data.balanceDue : total)?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </div>
                 </div>
-            ) : null}
-            <div className="mx-10 mt-2 text-white rounded-xl px-6 py-5 flex justify-between items-center" style={{ backgroundColor: t.bg.header }}>
-                <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: t.accent }}>Total Amount Due</div>
-                <div className="text-2xl font-black tracking-tight">${total?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
             </div>
 
             <div className="px-10">

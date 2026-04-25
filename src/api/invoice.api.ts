@@ -10,6 +10,7 @@ import {
 } from "@/services/invoice.services";
 import type { Row } from "@/types/entries.types";
 import type { InvoiceStatus } from "@/types/invoice.types";
+import type { InvoiceSavePayload } from "@/types/invoice-payload.types";
 
 export const useFetchInvoices = () => {
   return useQuery({
@@ -41,7 +42,7 @@ export const useSaveInvoice = () => {
       clientId: string;
       invoiceDate: string;
       dueDate: string;
-      invoiceDetails: any;
+      invoiceDetails: InvoiceSavePayload;
     }) =>
       saveInvoice(
         params.rows,
@@ -79,7 +80,7 @@ export const useUpdateFullInvoice = () => {
       rows: Row[];
       invoiceDate: string;
       dueDate: string;
-      invoiceDetails: any;
+      invoiceDetails: Partial<InvoiceSavePayload>;
     }) =>
       updateFullInvoice(
         params.invoiceId,

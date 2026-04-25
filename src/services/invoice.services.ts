@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase-client";
 import type { Row } from "@/types/entries.types";
 import type { InvoiceStatus } from "@/types/invoice.types";
+import type { InvoiceSavePayload } from "@/types/invoice-payload.types";
 
 export const fetchInvoices = async () => {
   const { data, error } = await supabase.from("invoices").select("*");
@@ -144,23 +145,7 @@ export const saveInvoice = async (
   clientId: string,
   invoiceDate: string,
   dueDate: string,
-  invoiceDetails: {
-    currency?: string;
-    subtotal?: number;
-    discount_type?: string;
-    discount_value?: number;
-    tax_rate?: number;
-    tax_amount?: number;
-    total_amount?: number;
-    auto_nudge?: boolean;
-    nudge_profile: "chill" | "professional" | "direct";
-    work_week_only: boolean;
-    notes?: string;
-    terms?: string;
-    parent_recurring_id?: string | null;
-    template_id?: string | null;
-    doc_type?: "invoice" | "quote";
-  },
+  invoiceDetails: InvoiceSavePayload,
 ) => {
   const {
     data: { user },
@@ -263,22 +248,7 @@ export const updateFullInvoice = async (
   rows: Row[],
   invoiceDate: string,
   dueDate: string,
-  invoiceDetails: {
-    currency?: string;
-    subtotal?: number;
-    discount_type?: string;
-    discount_value?: number;
-    tax_rate?: number;
-    tax_amount?: number;
-    total_amount?: number;
-    notes?: string;
-    terms?: string;
-    parent_recurring_id?: string | null;
-    email_status?: string | null;
-    last_email_at?: string | null;
-    payment_link?: string | null;
-    template_id?: string | null;
-  },
+  invoiceDetails: Partial<InvoiceSavePayload>,
 ) => {
   const { error: invErr } = await supabase
     .from("invoices")
