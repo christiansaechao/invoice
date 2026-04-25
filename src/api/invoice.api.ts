@@ -8,6 +8,7 @@ import {
   updateInvoiceStatus,
   updateFullInvoice,
   deleteInvoice,
+  fetchInvoiceHistory,
 } from "@/services/invoice.services";
 import type { Row } from "@/types/entries.types";
 import type { InvoiceStatus } from "@/types/invoice.types";
@@ -125,5 +126,13 @@ export const useDeleteInvoice = () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["invoices-with-totals"] });
     },
+  });
+};
+
+export const useInvoiceHistory = (invoiceId: string) => {
+  return useQuery({
+    queryKey: ["invoice-history", invoiceId],
+    queryFn: () => fetchInvoiceHistory(invoiceId),
+    enabled: !!invoiceId,
   });
 };
