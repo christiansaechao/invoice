@@ -19,6 +19,7 @@ interface PublicViewLayoutProps {
   onConvert: () => void;
   onDownloadPdf: () => void;
   isDownloading: boolean;
+  isRestricted?: boolean;
 }
 
 const formatCurrency = (amount: number, currency: string) =>
@@ -29,12 +30,15 @@ export function PublicViewLayout({
   children,
   isConverting,
   isDownloading,
+  isRestricted = false,
   onPay,
   onConvert,
   onDownloadPdf,
 }: PublicViewLayoutProps) {
   const isPaid = doc.paymentStatus === "paid";
   const isQuote = doc.docType === "quote";
+
+  const watermarkText = isQuote ? "ESTIMATE / NOT FINAL" : "DRAFT / NOT SENT";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -67,7 +71,7 @@ export function PublicViewLayout({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex gap-8 items-start">
           {/* ── Document Canvas ── */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-0">
             {/* Mobile swipe hint appears above canvas on small screens */}
             <p className="text-[11px] text-center text-muted-foreground/60 mb-3 md:hidden">
               Swipe the table to view all columns →
@@ -75,7 +79,10 @@ export function PublicViewLayout({
 
             {/* Canvas: glassmorphic card wrapping the TemplateRenderer */}
             <div
-              className="public-canvas bg-white rounded-2xl shadow-2xl shadow-slate-900/8 ring-1 ring-slate-900/5 overflow-hidden"
+              className={cn(
+                "public-canvas bg-white rounded-2xl shadow-2xl shadow-slate-900/8 ring-1 ring-slate-900/5 overflow-hidden relative",
+                isRestricted && "restricted-watermark"
+              )}
               /* Bottom padding clears sticky bar on mobile */
               style={{ paddingBottom: "0" }}
             >
@@ -99,6 +106,22 @@ export function PublicViewLayout({
                   background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
                   pointer-events: none;
                   border-radius: 0 0 1rem 0;
+                }
+                .restricted-watermark::after {
+                  content: '${watermarkText}';
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%) rotate(-30deg);
+                  font-size: clamp(3rem, 8vw, 6rem);
+                  font-weight: 900;
+                  color: rgba(0, 0, 0, 0.04);
+                  white-space: nowrap;
+                  pointer-events: none;
+                  user-select: none;
+                  z-index: 50;
+                  width: 150%;
+                  text-align: center;
                 }
               `}</style>
               {children}
@@ -191,7 +214,7 @@ export function PublicViewLayout({
                 )}
                 {isConverting ? "Converting…" : "Approve Quote"}
               </Button>
-            ) : (
+            ) : !isRestricted && (
               <Button
                 id="desktop-pay-invoice-btn"
                 onClick={onPay}
@@ -204,20 +227,27 @@ export function PublicViewLayout({
             )}
 
             {/* Download PDF — prominent secondary action */}
-            <Button
-              id="desktop-download-pdf-btn"
-              variant="outline"
-              onClick={onDownloadPdf}
-              disabled={isDownloading}
-              className="w-full h-11 font-semibold border-2 gap-2"
-            >
-              {isDownloading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4" />
+            <div className="relative group">
+              <Button
+                id="desktop-download-pdf-btn"
+                variant="outline"
+                onClick={onDownloadPdf}
+                disabled={isDownloading || isRestricted}
+                className="w-full h-11 font-semibold border-2 gap-2"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                {isDownloading ? "Generating…" : "Download PDF"}
+              </Button>
+              {isRestricted && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  Finalize invoice to download PDF
+                </div>
               )}
-              {isDownloading ? "Generating…" : "Download PDF"}
-            </Button>
+            </div>
 
             {/* Doc type badge */}
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted/50 border border-border/50">

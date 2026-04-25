@@ -8,6 +8,7 @@ interface PublicStickyBarProps {
   currency: string;
   paymentLink: string | null;
   isConverting: boolean;
+  isRestricted?: boolean;
   onPay: () => void;
   onConvert: () => void;
 }
@@ -22,6 +23,7 @@ export function PublicStickyBar({
   currency,
   paymentLink,
   isConverting,
+  isRestricted = false,
   onPay,
   onConvert,
 }: PublicStickyBarProps) {
@@ -71,16 +73,18 @@ export function PublicStickyBar({
                 {isConverting ? "Converting…" : "Approve & Convert"}
               </Button>
             ) : (
-              <Button
-                id="public-pay-invoice-btn"
-                onClick={onPay}
-                disabled={!paymentLink}
-                size="lg"
-                className="flex-shrink-0 h-12 px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 rounded-xl gap-2"
-              >
-                <CreditCard className="w-4 h-4" />
-                Pay Invoice
-              </Button>
+              !isRestricted && (
+                <Button
+                  id="public-pay-invoice-btn"
+                  onClick={onPay}
+                  disabled={!paymentLink}
+                  size="lg"
+                  className="flex-shrink-0 h-12 px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 rounded-xl gap-2"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Pay Invoice
+                </Button>
+              )
             )}
           </div>
         )}

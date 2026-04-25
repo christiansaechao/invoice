@@ -40,6 +40,7 @@ export type PublicInvoiceDocument = {
   dueDate: string;
   status: Database["public"]["Enums"]["invoice_status"];
   paymentStatus: Database["public"]["Enums"]["invoice_status"] | string;
+  isRestricted: boolean;
   paidAt: string | null;
   paymentLink: string | null;
   totalAmount: number;

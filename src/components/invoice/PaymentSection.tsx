@@ -18,8 +18,8 @@ export function PaymentSection({
   currency = "USD",
   templateSlug = "standard" 
 }: PaymentSectionProps) {
-  // Actionable check
-  const isActionable = status === "pending" || status === "overdue";
+  // Actionable check: must not be draft, paid, or cancelled
+  const isActionable = status !== "draft" && status !== "paid" && status !== "cancelled";
   
   if (!paymentLink || !isActionable) return null;
 

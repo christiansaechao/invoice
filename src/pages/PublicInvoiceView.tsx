@@ -179,6 +179,7 @@ export function PublicInvoiceView() {
         document={doc}
         isConverting={isConverting}
         isDownloading={isDownloading}
+        isRestricted={doc.isRestricted}
         onPay={handlePay}
         onConvert={handleConvert}
         onDownloadPdf={handleDownloadPdf}
@@ -197,6 +198,7 @@ export function PublicInvoiceView() {
         currency={doc.currency}
         paymentLink={doc.paymentLink}
         isConverting={isConverting}
+        isRestricted={doc.isRestricted}
         onPay={handlePay}
         onConvert={handleConvert}
       />

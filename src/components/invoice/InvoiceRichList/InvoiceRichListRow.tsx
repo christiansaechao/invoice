@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { 
-  Pencil, 
-  Download, 
-  MoreVertical, 
-  AlertTriangle, 
-  Loader2, 
+import {
+  Pencil,
+  Download,
+  MoreVertical,
+  AlertTriangle,
+  Loader2,
   History,
   Eye,
-  MousePointer2
+  MousePointer2,
+  Trash2,
+  Archive,
 } from "lucide-react";
 import type { InvoicesWithTotals, InvoiceStatus } from "@/types/invoice.types";
 import { StatusDropdown, STATUS_CONFIG } from "./InvoiceStatusDropdown";
@@ -16,6 +18,7 @@ import { downloadInvoicePdf } from "@/services/pdf.services";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
 import { useConvertQuote } from "@/hooks/useConvertQuote";
+import { useDeleteInvoice, useUpdateInvoiceStatus } from "@/api/invoice.api";
 
 // ─── Avatar helpers ───────────────────────────────────────────────────────────
 
@@ -58,6 +61,10 @@ export function InvoiceRichListRow({
   const { session } = useUser();
   const [isDownloading, setIsDownloading] = useState(false);
   const { mutate: convertQuote, isPending: isConverting } = useConvertQuote();
+  const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
+  const { mutate: updateStatus } = useUpdateInvoiceStatus();
+
+  const isLocked = status === "paid" || status === "void";
 
   const handleDownloadPdf = async () => {
     if (!session?.access_token || isDownloading) {
@@ -84,7 +91,9 @@ export function InvoiceRichListRow({
   return (
     <div className="flex items-center gap-4 px-5 py-4 hover:bg-accent/20 transition-colors last:rounded-b-xl">
       {/* Left accent bar — colour reflects current status */}
-      <div className={`w-1 self-stretch rounded-full flex-shrink-0 ${cfg.barClass}`} />
+      <div
+        className={`w-1 self-stretch rounded-full flex-shrink-0 ${cfg.barClass}`}
+      />
 
       {/* Brand avatar */}
       <div
@@ -108,14 +117,24 @@ export function InvoiceRichListRow({
       {/* Created Date */}
       <div className="hidden md:block w-[100px] flex-shrink-0">
         <p className="tabular-nums text-xs text-muted-foreground">
-          {new Date(inv.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          {new Date(inv.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
         </p>
       </div>
 
       {/* Due Date (Assuming Net 30 for visualization) */}
       <div className="hidden lg:block w-[100px] flex-shrink-0">
         <p className="tabular-nums text-xs text-muted-foreground">
-          {new Date(new Date(inv.created_at).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          {new Date(
+            new Date(inv.created_at).getTime() + 30 * 24 * 60 * 60 * 1000,
+          ).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
         </p>
       </div>
 
@@ -126,12 +145,14 @@ export function InvoiceRichListRow({
             #{inv.invoice_number}
           </p>
           {inv.doc_type === "quote" && (
-            <span className="bg-amber-500/10 text-amber-500 text-[9px] px-1 rounded font-bold uppercase tracking-wider border border-amber-500/20">Quote</span>
+            <span className="bg-amber-500/10 text-amber-500 text-[9px] px-1 rounded font-bold uppercase tracking-wider border border-amber-500/20">
+              Quote
+            </span>
           )}
         </div>
         <div className="flex items-center gap-1.5 h-4">
           {inv.link_clicked_at ? (
-            <div 
+            <div
               className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1 rounded border border-emerald-500/20 cursor-help"
               title={`Clicked: ${new Date(inv.link_clicked_at).toLocaleString()}`}
             >
@@ -139,7 +160,7 @@ export function InvoiceRichListRow({
               <span>CLICKED</span>
             </div>
           ) : inv.email_opened_at ? (
-            <div 
+            <div
               className="flex items-center gap-1 text-[9px] font-bold text-blue-500 bg-blue-500/10 px-1 rounded border border-blue-500/20 cursor-help"
               title={`Opened: ${new Date(inv.email_opened_at).toLocaleString()}`}
             >
@@ -153,7 +174,7 @@ export function InvoiceRichListRow({
       {/* Amount */}
       <div className="w-[100px] flex-shrink-0 text-right pr-4">
         <span className={`font-bold text-sm tabular-nums ${cfg.amountClass}`}>
-          {formatCurrency(inv.total_amount_owed || 0, inv.currency || 'USD')}
+          {formatCurrency(inv.total_amount_owed || 0, inv.currency || "USD")}
         </span>
       </div>
 
@@ -194,9 +215,12 @@ export function InvoiceRichListRow({
 
         {status === "pending" && (
           <div className="flex flex-col items-end gap-1">
-            {inv.doc_type === 'quote' && (
-              <button 
-                onClick={(e) => { e.stopPropagation(); convertQuote(inv.id); }}
+            {inv.doc_type === "quote" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  convertQuote(inv.id);
+                }}
                 disabled={isConverting}
                 className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 hover:bg-amber-500/20 transition-colors uppercase tracking-widest disabled:opacity-50"
                 title="Convert this quote to a payable invoice"
@@ -204,11 +228,17 @@ export function InvoiceRichListRow({
                 {isConverting ? "CONVERTING..." : "CONVERT"}
               </button>
             )}
-            <div 
+            <div
               className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-secondary-foreground cursor-help group"
-              title={inv.last_nudge_at ? `Last nudge: ${new Date(inv.last_nudge_at).toLocaleDateString()} (${inv.nudge_count || 0} sent)` : "No nudges sent yet"}
+              title={
+                inv.last_nudge_at
+                  ? `Last nudge: ${new Date(inv.last_nudge_at).toLocaleDateString()} (${inv.nudge_count || 0} sent)`
+                  : "No nudges sent yet"
+              }
             >
-              {inv.last_nudge_at && <History className="w-3 h-3 text-secondary-foreground/60 group-hover:text-secondary-foreground transition-colors" />}
+              {inv.last_nudge_at && (
+                <History className="w-3 h-3 text-secondary-foreground/60 group-hover:text-secondary-foreground transition-colors" />
+              )}
               <span>REMIND</span>
             </div>
             <button
@@ -237,6 +267,46 @@ export function InvoiceRichListRow({
               <AlertTriangle className="w-4 h-4" />
             </button>
           </>
+        )}
+
+        {/* Delete / Archive Button */}
+        {!isLocked && (
+          <button
+            disabled={isDeleting}
+            onClick={() => {
+              if (!inv.last_email_at) {
+                if (
+                  confirm(
+                    "Are you sure you want to PERMANENTLY DELETE this draft? This will free up your monthly slot.",
+                  )
+                ) {
+                  deleteInvoice(inv.id);
+                }
+              } else {
+                if (
+                  confirm(
+                    "This invoice has been sent. Archiving it will mark it as VOID but it will still count towards your monthly limit. Continue?",
+                  )
+                ) {
+                  updateStatus({ invoiceId: inv.id, status: "void" });
+                }
+              }
+            }}
+            className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+            title={
+              !inv.last_email_at
+                ? "Delete Draft (Frees up slot)"
+                : "Archive / Void (Does NOT free up slot)"
+            }
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : !inv.last_email_at ? (
+              <Trash2 className="w-4 h-4" />
+            ) : (
+              <Archive className="w-4 h-4" />
+            )}
+          </button>
         )}
       </div>
     </div>

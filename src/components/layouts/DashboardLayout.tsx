@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useLogo } from "@/api/user.api";
 import { useUser } from "@/store/user.store";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 const navItems: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -31,6 +32,7 @@ export function DashboardLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { session } = useUser();
   const { data: logoUrl } = useLogo(session?.user?.id ?? undefined);
+  const { monthlyInvoiceCount, limits } = usePlanLimits();
 
   async function signOut() {
     try {
@@ -120,7 +122,27 @@ export function DashboardLayout() {
           ))}
         </nav>
 
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-4">
+          {!isCollapsed && limits.monthlyInvoices < 1000 && (
+            <div className="px-2 py-3 bg-muted/30 rounded-xl border border-border/50">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Monthly Usage</span>
+                <span className="text-[10px] font-mono font-bold text-foreground">{monthlyInvoiceCount}/{limits.monthlyInvoices}</span>
+              </div>
+              <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-500" 
+                  style={{ width: `${Math.min((monthlyInvoiceCount / limits.monthlyInvoices) * 100, 100)}%` }}
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-2 leading-tight">
+                {monthlyInvoiceCount >= limits.monthlyInvoices 
+                  ? "Limit reached. Upgrade for more." 
+                  : `${limits.monthlyInvoices - monthlyInvoiceCount} slots remaining.`}
+              </p>
+            </div>
+          )}
+
           <Button
             variant="outline"
             className={`w-full ${isCollapsed ? "justify-center px-0" : ""} gap-2`}

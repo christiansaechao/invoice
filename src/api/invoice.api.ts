@@ -7,6 +7,7 @@ import {
   saveInvoice,
   updateInvoiceStatus,
   updateFullInvoice,
+  deleteInvoice,
 } from "@/services/invoice.services";
 import type { Row } from "@/types/entries.types";
 import type { InvoiceStatus } from "@/types/invoice.types";
@@ -110,6 +111,17 @@ export const useUpdateInvoiceEntries = () => {
       queryClient.invalidateQueries({
         queryKey: ["entries", variables.invoiceId],
       });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices-with-totals"] });
+    },
+  });
+};
+
+export const useDeleteInvoice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (invoiceId: string) => deleteInvoice(invoiceId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["invoices-with-totals"] });
     },

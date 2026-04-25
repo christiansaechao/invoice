@@ -241,6 +241,16 @@ export const updateInvoiceStatus = async (
   return { success: true, data };
 };
 
+export const deleteInvoice = async (invoiceId: string) => {
+  const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
+
+  if (error) {
+    console.error("Failed to delete invoice:", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+};
+
 export const updateFullInvoice = async (
   invoiceId: string,
   clientId: string,
