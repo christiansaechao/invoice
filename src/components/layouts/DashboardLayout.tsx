@@ -47,7 +47,7 @@ export function DashboardLayout() {
 
   return (
     <div
-      className="flex min-h-screen bg-background"
+      className="flex h-screen bg-background overflow-hidden"
       style={
         {
           "--sidebar-width": isCollapsed ? "80px" : "256px",
@@ -156,7 +156,7 @@ export function DashboardLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 overflow-y-auto">
         <Outlet />
       </main>
     </div>
