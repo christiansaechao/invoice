@@ -16,10 +16,7 @@ import {
 } from "@/api/invoice.api";
 import { useFetchInvoiceBalance } from "@/api/payment.api";
 import { toast } from "sonner";
-import {
-  getBillToOverride,
-  createEmptyRow,
-} from "@/utils/invoice.utils";
+import { getBillToOverride, createEmptyRow } from "@/utils/invoice.utils";
 import { computeTotalsFromRows, isFinancialChange } from "@/lib/billing";
 import { sendInvoiceEmail } from "@/services/invoice.services";
 import { useLineItems } from "@/hooks/useLineItems";
@@ -51,7 +48,14 @@ export function EditInvoiceModal({
   const { profile } = useUser();
   const { data: templates } = useTemplates();
   const { data: clients = [] } = useFetchClients();
-  const { discountMode, setDiscountMode, discountValue, setDiscountValue, taxRateBps, setTaxRateBps } = useInvoiceWorkspace();
+  const {
+    discountMode,
+    setDiscountMode,
+    discountValue,
+    setDiscountValue,
+    taxRateBps,
+    setTaxRateBps,
+  } = useInvoiceWorkspace();
 
   const {
     rows,
@@ -112,7 +116,8 @@ export function EditInvoiceModal({
 
   // Lifecycle guard: paid and void invoices are immutable
   const isLocked = invoice?.status === "paid" || invoice?.status === "void";
-  const isSentInvoice = invoice?.status === "pending" || invoice?.status === "overdue";
+  const isSentInvoice =
+    invoice?.status === "pending" || invoice?.status === "overdue";
 
   // Snapshot of original invoice for change detection
   const originalSnapshot = useRef<Record<string, unknown>>({});
@@ -131,6 +136,20 @@ export function EditInvoiceModal({
     }
   }, [isOpen, invoice]);
 
+  const {
+    subtotal,
+    total,
+    discountAmt,
+    tax,
+    subtotalCents,
+    totalCents,
+    discountCents,
+    taxCents,
+  } = useMemo(
+    () => computeTotalsFromRows(rows, discountMode, discountValue, taxRateBps),
+    [rows, discountMode, discountValue, taxRateBps],
+  );
+
   // Detect if current edits include financial changes compared to original
   const hasFinancialChanges = useMemo(() => {
     if (!isSentInvoice) return false;
@@ -138,14 +157,26 @@ export function EditInvoiceModal({
       subtotal: subtotalCents,
       total_amount: totalCents,
       discount_type: discountMode,
-      discount_value: discountMode === "percent" ? discountValue : discountCents,
+      discount_value:
+        discountMode === "percent" ? discountValue : discountCents,
       tax_rate: taxRateBps,
       tax_amount: taxCents,
       currency,
       due_date: dueDate,
     };
     return isFinancialChange(originalSnapshot.current, current);
-  }, [isSentInvoice, subtotalCents, totalCents, discountMode, discountValue, discountCents, taxRateBps, taxCents, currency, dueDate]);
+  }, [
+    isSentInvoice,
+    subtotalCents,
+    totalCents,
+    discountMode,
+    discountValue,
+    discountCents,
+    taxRateBps,
+    taxCents,
+    currency,
+    dueDate,
+  ]);
 
   const handleClientCreated = (newClient: any) => {
     setSelectedClientId(newClient.id);
@@ -175,7 +206,8 @@ export function EditInvoiceModal({
           currency,
           template_id: templateId,
           discount_type: discountMode,
-          discount_value: discountMode === "percent" ? discountValue : discountCents,
+          discount_value:
+            discountMode === "percent" ? discountValue : discountCents,
           tax_rate: taxRateBps,
           tax_amount: taxCents,
         },
@@ -218,7 +250,8 @@ export function EditInvoiceModal({
           currency,
           template_id: templateId,
           discount_type: discountMode,
-          discount_value: discountMode === "percent" ? discountValue : discountCents,
+          discount_value:
+            discountMode === "percent" ? discountValue : discountCents,
           tax_rate: taxRateBps,
           tax_amount: taxCents,
         },
@@ -262,11 +295,6 @@ export function EditInvoiceModal({
       window.print();
     }, 150);
   };
-
-  const { subtotal, total, discountAmt, tax, subtotalCents, totalCents, discountCents, taxCents } = useMemo(
-    () => computeTotalsFromRows(rows, discountMode, discountValue, taxRateBps),
-    [rows, discountMode, discountValue, taxRateBps],
-  );
 
   // Resolve template UUID to slug for renderer
   const templateSlug = useMemo(() => {
@@ -342,7 +370,13 @@ export function EditInvoiceModal({
               <Button
                 size="sm"
                 onClick={handleSave}
-                disabled={isDeploying || isSending || isFetchingEntries || !invoice || isLocked}
+                disabled={
+                  isDeploying ||
+                  isSending ||
+                  isFetchingEntries ||
+                  !invoice ||
+                  isLocked
+                }
                 variant={hasFinancialChanges ? "outline" : "default"}
                 className="h-8"
               >
@@ -357,7 +391,9 @@ export function EditInvoiceModal({
                 <Button
                   size="sm"
                   onClick={handleSaveAndResend}
-                  disabled={isDeploying || isSending || isFetchingEntries || !invoice}
+                  disabled={
+                    isDeploying || isSending || isFetchingEntries || !invoice
+                  }
                   className="h-8"
                 >
                   {isSending ? (
@@ -375,7 +411,9 @@ export function EditInvoiceModal({
             <div className="mx-6 mt-4 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-2">
               <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
               <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-                This invoice is <span className="font-bold">{invoice?.status}</span> and cannot be edited.
+                This invoice is{" "}
+                <span className="font-bold">{invoice?.status}</span> and cannot
+                be edited.
               </p>
             </div>
           )}

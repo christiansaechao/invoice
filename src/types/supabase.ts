@@ -280,12 +280,16 @@ export type Database = {
           discount_value: number | null
           doc_type: Database["public"]["Enums"]["document_type"] | null
           due_date: string | null
+          email_opened_at: string | null
           email_status: string | null
           id: string
           invoice_date: string | null
           invoice_number: number
           last_email_at: string | null
+          last_email_status: string | null
+          link_clicked_at: string | null
           notes: string | null
+          nudge_count: number | null
           nudge_paused_until: string | null
           nudge_profile: string | null
           paid_at: string | null
@@ -302,6 +306,7 @@ export type Database = {
           updated_at: string
           user_id: string
           work_week_only: boolean | null
+          last_nudge_at: string | null
         }
         Insert: {
           auto_nudge?: boolean | null
@@ -312,12 +317,16 @@ export type Database = {
           discount_value?: number | null
           doc_type?: Database["public"]["Enums"]["document_type"] | null
           due_date?: string | null
+          email_opened_at?: string | null
           email_status?: string | null
           id?: string
           invoice_date?: string | null
           invoice_number: number
           last_email_at?: string | null
+          last_email_status?: string | null
+          link_clicked_at?: string | null
           notes?: string | null
+          nudge_count?: number | null
           nudge_paused_until?: string | null
           nudge_profile?: string | null
           paid_at?: string | null
@@ -334,6 +343,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           work_week_only?: boolean | null
+          last_nudge_at?: string | null
         }
         Update: {
           auto_nudge?: boolean | null
@@ -344,12 +354,16 @@ export type Database = {
           discount_value?: number | null
           doc_type?: Database["public"]["Enums"]["document_type"] | null
           due_date?: string | null
+          email_opened_at?: string | null
           email_status?: string | null
           id?: string
           invoice_date?: string | null
           invoice_number?: number
           last_email_at?: string | null
+          last_email_status?: string | null
+          link_clicked_at?: string | null
           notes?: string | null
+          nudge_count?: number | null
           nudge_paused_until?: string | null
           nudge_profile?: string | null
           paid_at?: string | null
@@ -366,6 +380,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           work_week_only?: boolean | null
+          last_nudge_at?: string | null
         }
         Relationships: [
           {
@@ -942,7 +957,7 @@ export const Constants = {
   public: {
     Enums: {
       document_type: ["quote", "invoice"],
-      email_event_type: ["sent", "opened", "clicked", "bounced"],
+      email_event_type: ["sent", "opened", "clicked", "bounced", "delivered"],
       invoice_status: ["paid", "void", "draft", "pending", "overdue"],
       nudge_type: ["initial", "reminder_1", "reminder_2", "final_notice"],
       payment_status_log: ["pending", "succeeded", "failed"],
