@@ -3,7 +3,7 @@ import type { Row } from "@/types/entries.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Calculator } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useInvoiceWorkspace } from "@/store/invoice.store";
 import { cn } from "@/utils/utils";
 
@@ -135,7 +135,8 @@ export function LineItemsForm({
                   placeholder="0.00"
                   value={row.amount}
                   onChange={(e) => updateRow(i, "amount", e.target.value)}
-                  className="w-full font-bold text-primary bg-primary/[0.03]"
+                  className="w-full font-bold text-primary bg-primary/[0.03] disabled:opacity-100"
+                  disabled
                 />
               </div>
             </div>
