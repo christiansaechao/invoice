@@ -7,6 +7,7 @@ import { CreateClientModal } from "./CreateClientModal";
 
 import { SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { CustomDatePicker } from "./CustomDatePicker";
 
 type InvoiceDetailsFormProps = {
   clients: any[];
@@ -124,13 +125,14 @@ export function InvoiceDetailsForm({
 
         <div className="flex flex-col gap-2 min-w-0">
           <Label htmlFor="due-date">Due Date</Label>
-          <Input
+          {/* <Input
             id="due-date"
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          />
+          /> */}
+          <CustomDatePicker value={dueDate} onChange={setDueDate} />
         </div>
       </div>
     </div>
