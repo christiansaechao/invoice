@@ -218,6 +218,10 @@ export function NewInvoice() {
       toast("Please select a client before saving the invoice.");
       return;
     }
+    if (!templateId) {
+      toast("Please select an Invoice Template before saving the invoice.");
+      return;
+    }
     const result = await saveInvoiceMutation.mutateAsync({
       rows,
       clientId: selectedClientId,
