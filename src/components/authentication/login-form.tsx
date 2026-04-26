@@ -21,6 +21,9 @@ export function LoginForm({
     setIsLoading(true);
     setError(null);
 
+    // set remember device preference
+    localStorage.setItem("dongma-remember-device", rememberMe ? "true" : "false");
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
