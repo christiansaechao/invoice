@@ -957,7 +957,7 @@ export const Constants = {
   public: {
     Enums: {
       document_type: ["quote", "invoice"],
-      email_event_type: ["sent", "opened", "clicked", "bounced", "delivered"],
+      email_event_type: ["sent", "opened", "clicked", "bounced", "delivered", "complained", "delivery_delayed"],
       invoice_status: ["paid", "void", "draft", "pending", "overdue"],
       nudge_type: ["initial", "reminder_1", "reminder_2", "final_notice"],
       payment_status_log: ["pending", "succeeded", "failed"],
