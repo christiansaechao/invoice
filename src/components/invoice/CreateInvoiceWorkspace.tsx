@@ -1,8 +1,8 @@
-import { useInvoiceWorkspace } from "@/store/invoice.store";
-import { cn } from "@/utils/utils";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "lucide-react";
+import { useInvoiceWorkspace } from '@/store/invoice.store';
+import { cn } from '@/utils/utils';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { CustomDatePicker } from './CustomDatePicker';
 
 type WorkspaceProps = {
   date: string;
@@ -29,23 +29,23 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
       <div className="flex gap-4">
         <div className="flex bg-muted p-1 rounded-lg w-[180px]">
           <button
-            onClick={() => setDocumentType("invoice")}
+            onClick={() => setDocumentType('invoice')}
             className={cn(
-              "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
-              documentType === "invoice"
-                ? "bg-card shadow-sm text-primary"
-                : "text-muted-foreground",
+              'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all',
+              documentType === 'invoice'
+                ? 'bg-card shadow-sm text-primary'
+                : 'text-muted-foreground',
             )}
           >
             Invoice
           </button>
           <button
-            onClick={() => setDocumentType("quote")}
+            onClick={() => setDocumentType('quote')}
             className={cn(
-              "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
-              documentType === "quote"
-                ? "bg-card shadow-sm text-primary"
-                : "text-muted-foreground",
+              'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all',
+              documentType === 'quote'
+                ? 'bg-card shadow-sm text-primary'
+                : 'text-muted-foreground',
             )}
           >
             Quote
@@ -53,23 +53,23 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
         </div>
         <div className="flex bg-muted p-1 rounded-lg w-[180px]">
           <button
-            onClick={() => setWorkspaceMode("one-time")}
+            onClick={() => setWorkspaceMode('one-time')}
             className={cn(
-              "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
-              workspaceMode === "one-time"
-                ? "bg-card shadow-sm text-primary"
-                : "text-muted-foreground",
+              'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all',
+              workspaceMode === 'one-time'
+                ? 'bg-card shadow-sm text-primary'
+                : 'text-muted-foreground',
             )}
           >
             One-Time
           </button>
           <button
-            onClick={() => setWorkspaceMode("recurring")}
+            onClick={() => setWorkspaceMode('recurring')}
             className={cn(
-              "flex-1 py-1.5 text-xs font-semibold rounded-md transition-all",
-              workspaceMode === "recurring"
-                ? "bg-card shadow-sm text-primary"
-                : "text-muted-foreground",
+              'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all',
+              workspaceMode === 'recurring'
+                ? 'bg-card shadow-sm text-primary'
+                : 'text-muted-foreground',
             )}
           >
             Recurring
@@ -77,18 +77,19 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
         </div>
       </div>
 
-      {workspaceMode === "one-time" ? (
+      {workspaceMode === 'one-time' ? (
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="issue_date">Issue Date</Label>
-            <div className="relative">
-              <Input
+            {/* <div className="relative"> */}
+              {/* <Input
                 id="issue_date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
+              /> */}
+              <CustomDatePicker value={date} onChange={setDate} />
+            {/* </div> */}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="payment_terms">Payment Terms</Label>
@@ -133,7 +134,7 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
                   setSchedulingConfig({ issueDay: e.target.value })
                 }
               >
-                {schedulingConfig.frequency !== "monthly" ? (
+                {schedulingConfig.frequency !== 'monthly' ? (
                   <>
                     <option value="Monday">Monday</option>
                     <option value="Tuesday">Tuesday</option>
@@ -180,7 +181,7 @@ export function CreateInvoiceWorkspace({ date, setDate }: WorkspaceProps) {
                   type="number"
                   min={1}
                   className="w-20 h-8"
-                  value={schedulingConfig.stopAfterXInvoices || ""}
+                  value={schedulingConfig.stopAfterXInvoices || ''}
                   onChange={(e) =>
                     setSchedulingConfig({
                       stopAfterXInvoices: parseInt(e.target.value) || null,

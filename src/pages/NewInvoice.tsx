@@ -42,6 +42,7 @@ export function NewInvoice() {
   // Meta State
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState("");
+  // const [date, setDate] = useState<Date | null>(null)
   const [dueDate, setDueDate] = useState("");
 
   // Client Selection State
