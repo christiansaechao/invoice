@@ -111,9 +111,9 @@ export const fetchInvoiceHistory = async (invoiceId: string) => {
   ]);
 
   const history = [
-    ...(emails.data || []).map(e => ({ ...e, event_type: 'email' as const, timestamp: e.created_at })),
-    ...(nudges.data || []).map(n => ({ ...n, event_type: 'nudge' as const, timestamp: n.sent_at })),
-    ...(payments.data || []).map(p => ({ ...p, event_type: 'payment' as const, timestamp: p.created_at })),
+    ...(emails.data || []).map(e => ({ ...e, event_type: 'email' as const, timestamp: e.created_at || "" })),
+    ...(nudges.data || []).map(n => ({ ...n, event_type: 'nudge' as const, timestamp: n.sent_at || "" })),
+    ...(payments.data || []).map(p => ({ ...p, event_type: 'payment' as const, timestamp: p.created_at || "" })),
   ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return history;
@@ -243,17 +243,30 @@ export const updateInvoiceStatus = async (
   invoiceId: string,
   status: InvoiceStatus,
 ) => {
-  const { data, error } = await supabase
-    .from("invoices")
-    .update({ status })
-    .eq("id", invoiceId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Failed to update invoice status:", error);
-    return { success: false, error: error.message };
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    return { success: false, error: "Not authenticated" };
   }
+
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/api/invoices/${invoiceId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ status }),
+    },
+  );
+
+  if (!response.ok) {
+    const err = await response.json();
+    console.error("Failed to update invoice status:", err);
+    return { success: false, error: err.error || "Failed to update status" };
+  }
+
+  const data = await response.json();
   return { success: true, data };
 };
 

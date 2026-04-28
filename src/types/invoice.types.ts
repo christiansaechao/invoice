@@ -27,3 +27,5 @@ export type InvoicesWithTotals = Omit<Invoices, "payment_methods"> & {
   nudge_count?: number;
 };
 
+export type NudgeType = Database["public"]["Enums"]["nudge_type"];
+

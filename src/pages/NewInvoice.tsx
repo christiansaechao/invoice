@@ -6,7 +6,7 @@ import { InvoiceActionButtons } from "../components/invoice/InvoiceActionButtons
 import { sendInvoiceEmail } from "@/services/invoice.services";
 import { toast } from "sonner";
 import { useFetchClients } from "@/api/client.api";
-import { useSaveInvoice } from "@/api/invoice.api";
+import { useSaveInvoice, useUpdateInvoiceStatus } from "@/api/invoice.api";
 import { useCurrentSubscription } from "@/api/subscription.api";
 import {
   MAGIC_CREDIT_LIMITS,
@@ -40,6 +40,7 @@ export function NewInvoice() {
   const { canCreateInvoice, monthlyInvoiceCount, limits } = usePlanLimits();
 
   // Meta State
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState("");
   // const [date, setDate] = useState<Date | null>(null)
@@ -195,6 +196,7 @@ export function NewInvoice() {
   }
 
   const saveInvoiceMutation = useSaveInvoice();
+  const updateStatusMutation = useUpdateInvoiceStatus();
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const billToOverride = getBillToOverride(selectedClient);
@@ -248,6 +250,7 @@ export function NewInvoice() {
     // Update the preview with the server-assigned invoice number
     if (result.success && result.invoice?.invoice_number) {
       setInvoiceNumber(String(result.invoice.invoice_number));
+      setInvoiceId(result.invoice.id);
       return result.invoice; // Return the saved invoice data
     }
     return null;
@@ -281,6 +284,16 @@ export function NewInvoice() {
 
       // We use the same data shape as the renderer
       await sendInvoiceEmail(previewDocument, client.email, accessToken);
+
+      // 3. Transition to pending if it's a new/draft invoice
+      const targetId = invoiceId || savedInvoice?.id;
+      if (targetId) {
+        await updateStatusMutation.mutateAsync({
+          invoiceId: targetId,
+          status: "pending"
+        });
+      }
+
       toast.success("Invoice sent to " + client.email);
     } catch (err: any) {
       console.error("Failed to send invoice", err);

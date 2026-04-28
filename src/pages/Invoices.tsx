@@ -144,9 +144,11 @@ export default function Invoices() {
               className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               <option value="all">All</option>
-              <option value="paid">Paid</option>
+              <option value="draft">Draft</option>
               <option value="pending">Pending</option>
               <option value="overdue">Overdue</option>
+              <option value="paid">Paid</option>
+              <option value="void">Void</option>
             </select>
           </div>
         </div>

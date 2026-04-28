@@ -254,6 +254,7 @@ export function EditInvoiceModal({
             discountMode === "percent" ? discountValue : discountCents,
           tax_rate: taxRateBps,
           tax_amount: taxCents,
+          ...(invoice.status === "draft" ? { status: "pending" } as any : {}),
         },
       });
 
@@ -272,11 +273,7 @@ export function EditInvoiceModal({
       }
 
       await sendInvoiceEmail(
-        {
-          invoiceId: invoice.id,
-          invoiceNumber,
-          templateId,
-        },
+        previewDocument,
         client.email,
         session.access_token,
       );

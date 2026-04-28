@@ -188,15 +188,36 @@ export function InvoiceRichListRow({
       </div>
 
       {/* Context actions — vary by status */}
-      <div className="flex items-center gap-1 flex-shrink-0 w-[110px] justify-end">
+      <div className="flex items-center gap-1 flex-shrink-0 w-[140px] justify-end">
+        {/* ── Draft ───────────────────────────────────────────────── */}
+        {status === "draft" && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onEdit(inv)}
+              className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20 hover:bg-primary/20 transition-colors uppercase tracking-widest"
+              title="Send to client"
+            >
+              SEND
+            </button>
+            <button
+              onClick={() => onEdit(inv)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+              title="Edit draft"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* ── Paid ────────────────────────────────────────────────── */}
         {status === "paid" && (
           <>
             <button
               onClick={() => onEdit(inv)}
               className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
-              title="View / Edit"
+              title="View"
             >
-              <Pencil className="w-4 h-4" />
+              <Eye className="w-4 h-4" />
             </button>
             <button
               onClick={handleDownloadPdf}
@@ -213,63 +234,98 @@ export function InvoiceRichListRow({
           </>
         )}
 
+        {/* ── Pending ─────────────────────────────────────────────── */}
         {status === "pending" && (
           <div className="flex flex-col items-end gap-1">
-            {inv.doc_type === "quote" && (
+            <div className="flex items-center gap-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  convertQuote(inv.id);
+                  updateStatus({ invoiceId: inv.id, status: "paid" });
                 }}
-                disabled={isConverting}
-                className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 hover:bg-amber-500/20 transition-colors uppercase tracking-widest disabled:opacity-50"
-                title="Convert this quote to a payable invoice"
+                className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors uppercase tracking-widest"
+                title="Mark as paid"
               >
-                {isConverting ? "CONVERTING..." : "CONVERT"}
+                MARK PAID
               </button>
-            )}
-            <div
-              className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-secondary-foreground cursor-help group"
-              title={
-                inv.last_nudge_at
-                  ? `Last nudge: ${new Date(inv.last_nudge_at).toLocaleDateString()} (${inv.nudge_count || 0} sent)`
-                  : "No nudges sent yet"
-              }
-            >
-              {inv.last_nudge_at && (
-                <History className="w-3 h-3 text-secondary-foreground/60 group-hover:text-secondary-foreground transition-colors" />
+              {inv.doc_type === "quote" && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    convertQuote(inv.id);
+                  }}
+                  disabled={isConverting}
+                  className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 hover:bg-amber-500/20 transition-colors uppercase tracking-widest disabled:opacity-50"
+                  title="Convert this quote to a payable invoice"
+                >
+                  {isConverting ? "CONVERTING..." : "CONVERT"}
+                </button>
               )}
-              <span>REMIND</span>
             </div>
-            <button
-              onClick={() => onEdit(inv)}
-              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
-              title="Edit invoice"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <div
+                className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-secondary-foreground cursor-help group mr-1"
+                title={
+                  inv.last_nudge_at
+                    ? `Last nudge: ${new Date(inv.last_nudge_at).toLocaleDateString()} (${inv.nudge_count || 0} sent)`
+                    : "No nudges sent yet"
+                }
+              >
+                {inv.last_nudge_at && (
+                  <History className="w-3 h-3 text-secondary-foreground/60 group-hover:text-secondary-foreground transition-colors" />
+                )}
+                <span>REMIND</span>
+              </div>
+              <button
+                onClick={() => onEdit(inv)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                title="Edit invoice"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
 
+        {/* ── Overdue ─────────────────────────────────────────────── */}
         {status === "overdue" && (
-          <>
+          <div className="flex flex-col items-end gap-1">
             <button
-              onClick={() => onEdit(inv)}
-              className="bg-destructive text-destructive-foreground text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity leading-tight"
+              onClick={(e) => {
+                e.stopPropagation();
+                updateStatus({ invoiceId: inv.id, status: "paid" });
+              }}
+              className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors uppercase tracking-widest"
+              title="Mark as paid"
             >
-              REMIND
+              MARK PAID
             </button>
-            <button
-              onClick={() => onEdit(inv)}
-              className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
-              title="Edit"
-            >
-              <AlertTriangle className="w-4 h-4" />
-            </button>
-          </>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onEdit(inv)}
+                className="bg-destructive text-destructive-foreground text-[10px] font-bold tracking-widest uppercase px-2 py-1 rounded hover:opacity-80 transition-opacity leading-tight"
+              >
+                REMIND
+              </button>
+              <button
+                onClick={() => onEdit(inv)}
+                className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                title="Edit"
+              >
+                <AlertTriangle className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         )}
 
-        {/* Delete / Archive Button */}
+        {/* ── Void ────────────────────────────────────────────────── */}
+        {status === "void" && (
+          <span className="text-[10px] text-muted-foreground/50 font-bold tracking-widest uppercase mr-2">
+            VOIDED
+          </span>
+        )}
+
+        {/* Delete / Archive Button — only for non-finalized invoices */}
         {!isLocked && (
           <button
             disabled={isDeleting}

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import type { InvoiceStatus } from "@/types/invoice.types";
+import { STATUS_TRANSITIONS, TRANSITION_LABELS } from "@/lib/invoice-status";
 
 export const STATUS_CONFIG: Record<
   InvoiceStatus,
@@ -65,27 +66,30 @@ export function StatusDropdown({ status, disabled, onChange }: StatusDropdownPro
     setIsOpen(false);
   };
 
+  const transitions = STATUS_TRANSITIONS[status] ?? [];
+  const hasTransitions = transitions.length > 0;
+
   return (
     <div className="relative inline-block" ref={ref}>
       <button
-        onClick={() => !disabled && setIsOpen((o) => !o)}
-        disabled={disabled}
+        onClick={() => hasTransitions && !disabled && setIsOpen((o) => !o)}
+        disabled={disabled || !hasTransitions}
         className={`
           w-[110px] flex-shrink-0 appearance-none text-center
           text-[10px] font-bold tracking-widest uppercase
           px-2.5 py-1.5 rounded-full border border-transparent outline-none transition-all
-          ${disabled ? "opacity-50 cursor-not-allowed" : "hover:opacity-85 cursor-pointer shadow-sm"}
+          ${(disabled || !hasTransitions) ? "opacity-50 cursor-not-allowed" : "hover:opacity-85 cursor-pointer shadow-sm"}
           ${cfg.pillClass}
         `}
       >
         {cfg.label}
       </button>
 
-      {isOpen && !disabled && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[120px] bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden flex flex-col p-1.5 gap-1 animate-in fade-in zoom-in-95 duration-100">
-          {(["paid", "pending"] as InvoiceStatus[]).map((st) => {
+      {isOpen && !disabled && hasTransitions && (
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[140px] bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden flex flex-col p-1.5 gap-1 animate-in fade-in zoom-in-95 duration-100">
+          {transitions.map((st) => {
              const sc = STATUS_CONFIG[st];
-             const isSelected = status === st;
+             const label = TRANSITION_LABELS[st] ?? sc.label;
              return (
                <button
                  key={st}
@@ -93,13 +97,10 @@ export function StatusDropdown({ status, disabled, onChange }: StatusDropdownPro
                  className={`
                    text-[10px] font-bold tracking-widest uppercase text-center
                    w-full py-2 px-2 rounded-lg transition-colors border
-                   ${isSelected 
-                      ? `${sc.pillClass} border-transparent` 
-                      : "bg-transparent border-transparent text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-                   }
+                   bg-transparent border-transparent text-muted-foreground hover:bg-accent/50 hover:text-foreground
                  `}
                >
-                 {sc.label}
+                 {label}
                </button>
              );
           })}
